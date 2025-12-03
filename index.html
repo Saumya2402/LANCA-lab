@@ -1,0 +1,42 @@
+---
+layout: default
+title: Home
+---
+
+<!-- Hero Section -->
+<style>
+    #hero-container { position: relative; width: 100%; height: 80vh; background: radial-gradient(circle at center, #2c2c2c, #000); overflow: hidden; }
+    #canvas-container { width: 100%; height: 100%; display: block; }
+    .hero-overlay { position: absolute; top: 50%; left: 5%; transform: translateY(-50%); color: white; max-width: 600px; pointer-events: none; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+    .hero-overlay h1 { font-size: 3.5rem; line-height: 1.1; margin-bottom: 1rem; border-left: 5px solid #8C1D40; padding-left: 20px; }
+    .cta-button { pointer-events: auto; background-color: #8C1D40; color: white; padding: 12px 30px; font-weight: 700; border-radius: 2px; border: 2px solid #8C1D40; }
+</style>
+
+<div id="hero-container">
+    <div id="canvas-container"></div>
+    <div class="hero-overlay">
+        <h1>UNSTEADY<br>AERODYNAMICS</h1>
+        <p>Laboratory for Analytical and Computational Analysis at ASU.</p>
+        <a href="#research" class="cta-button">View Simulations</a>
+    </div>
+</div>
+
+<!-- Research Section -->
+<section id="research" style="padding: 4rem 10%;">
+    <h2 style="font-size: 2rem; color: #8C1D40; border-bottom: 4px solid #FFC627; display:inline-block;">High-Fidelity Analysis</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 2rem;">
+        <div>
+            <p>Our lab focuses on complex boundary layer interactions...</p>
+            <!-- Your text content -->
+        </div>
+        <div style="background:white; padding:20px; border-top:4px solid #8C1D40;">
+            <div id="interactive-plot" style="width:100%;height:400px;"></div>
+        </div>
+    </div>
+</section>
+
+<!-- SCRIPTS (Three.js and Plotly logic goes here) -->
+<script>
+    // Paste the Javascript for the Graph and the 3D particles here
+    // (See the original file for the full script)
+</script>
