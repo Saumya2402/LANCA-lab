@@ -2,4 +2,5 @@ title: LANCA Lab
 description: Unsteady Aerodynamics at ASU
 baseurl: "/LANCA-lab" # IMPORTANT: Put your repository name here with a slash
 url: "[https://yourusername.github.io](https://yourusername.github.io)" # Put your GitHub URL here
+# No theme, using custom layout
 markdown: kramdown
