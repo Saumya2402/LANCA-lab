@@ -4,8 +4,9 @@ title: Research
 ---
 
 <style>
+    /* Specific styles for the empty state container */
     .empty-state {
-        min-height: 60vh;
+        min-height: 70vh; /* Takes up most of the screen */
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -13,34 +14,89 @@ title: Research
         background-color: #f5f5f5;
         text-align: center;
         padding: 2rem;
+        border-top: 5px solid #8C1D40; /* ASU Maroon top border */
     }
+
     .empty-icon {
         font-size: 4rem;
         color: #ddd;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
     }
+
     .construction-badge {
-        background: #FFC627;
+        background: #FFC627; /* ASU Gold */
         color: #000;
-        padding: 5px 15px;
+        padding: 8px 20px;
         font-weight: 700;
-        border-radius: 20px;
-        font-size: 0.8rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
         text-transform: uppercase;
-        margin-bottom: 1rem;
+        letter-spacing: 1px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         display: inline-block;
+    }
+
+    .empty-state h1 {
+        color: #8C1D40;
+        font-family: 'Oswald', sans-serif;
+        font-size: 3rem;
+        margin: 0 0 1rem 0;
+        text-transform: uppercase;
+    }
+
+    .empty-state p {
+        color: #555;
+        max-width: 600px;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        font-size: 1.1rem;
+    }
+
+    .witty-quote {
+        font-style: italic;
+        color: #888;
+        font-size: 1rem;
+        margin-bottom: 3rem;
+        font-family: serif;
+    }
+
+    .return-btn {
+        text-decoration: none;
+        color: #8C1D40;
+        font-weight: 700;
+        border: 2px solid #8C1D40;
+        padding: 10px 25px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+    }
+
+    .return-btn:hover {
+        background-color: #8C1D40;
+        color: white;
     }
 </style>
 
 <div class="empty-state">
     <div class="construction-badge"><i class="fas fa-hard-hat"></i> Under Construction</div>
+    
     <div class="empty-icon"><i class="fas fa-microscope"></i></div>
-    <h1 style="color: #8C1D40; font-family: 'Oswald'; font-size: 2.5rem; margin:0;">Research Data Incoming</h1>
-    <p style="color: #666; max-width: 500px; margin-top: 1rem; line-height: 1.6;">
-        We are currently updating this page with our latest findings on <strong>Viscous-Inviscid Interactions</strong> and <strong>Machine Learning Closures</strong>.
+    
+    <h1>Research Data Incoming</h1>
+    
+    <p>
+        We are currently updating this page with our latest findings on 
+        <strong>Viscous-Inviscid Interactions</strong>, <strong>Machine Learning Closures</strong>, 
+        and <strong>Trailing Edge Geometry Effects</strong>.
     </p>
-    <p style="font-style: italic; color: #888; font-size: 0.9rem;">
-        "Please give us a moment as we simulate it!"
+    
+    <p class="witty-quote">
+        "Please give us a moment... we are currently meshing the domain."
     </p>
-    <a href="{{ site.baseurl }}/" style="margin-top: 2rem; color: #8C1D40; font-weight: 700;">&larr; Return to Wind Tunnel</a>
+    
+    <a href="{{ site.baseurl }}/" class="return-btn">
+        <i class="fas fa-arrow-left"></i> Return to Wind Tunnel
+    </a>
 </div>
