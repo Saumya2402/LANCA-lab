@@ -4,53 +4,230 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page.title }} | LANCA ASU</title>
-    <!-- Fonts & Icons -->
-    <link href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css)" rel="stylesheet">
-    <link href="[https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Oswald:wght@500&display=swap](https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Oswald:wght@500&display=swap)" rel="stylesheet">
-    <!-- Plotly & Three.js -->
-    <script src="[https://cdn.plot.ly/plotly-2.27.0.min.js](https://cdn.plot.ly/plotly-2.27.0.min.js)"></script>
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js](https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js)"></script>
     
-    <!-- CSS GOES HERE (Ideally this goes in a separate file later, but keep it here for now) -->
+    <!-- Fonts & Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Oswald:wght@500&display=swap" rel="stylesheet">
+    
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- Plotly & Three.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <style>
-        :root { --asu-maroon: #8C1D40; --asu-gold: #FFC627; --asu-black: #000000; --bg-light: #f5f5f5; --text-dark: #191919; }
-        body { margin: 0; font-family: 'Roboto', sans-serif; color: var(--text-dark); background-color: var(--bg-light); }
-        h1, h2, h3 { font-family: 'Oswald', sans-serif; text-transform: uppercase; margin: 0; }
-        a { text-decoration: none; color: inherit; transition: 0.3s; }
-        nav { background-color: var(--asu-black); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 4px solid var(--asu-gold); }
-        .nav-logo { font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
-        .nav-links a { margin-left: 20px; font-size: 0.9rem; font-weight: 500; }
-        .nav-links a:hover { color: var(--asu-gold); }
-        footer { background: var(--asu-black); color: #888; padding: 3rem 10%; font-size: 0.9rem; border-top: 5px solid var(--asu-maroon); }
-        
-        /* Keep all your other CSS styles from the original file here */
-        /* ... I have shortened this for the tutorial, but paste the FULL CSS here ... */
+        :root {
+            --asu-maroon: #8C1D40;
+            --asu-gold: #FFC627;
+            --asu-black: #000000;
+            --bg-light: #f5f5f5;
+            --text-dark: #191919;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            color: var(--text-dark);
+            background-color: var(--asu-black); /* Default to black to prevent white flashes */
+            overflow-x: hidden; /* Hide scrollbar during transitions */
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--asu-gold);
+        }
+
+        .nav-logo {
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Oswald', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .nav-links a {
+            margin-left: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--asu-gold);
+        }
+
+        /* --- TRANSITION OVERLAY --- */
+        #transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none; /* Let clicks pass initially */
+            opacity: 0; /* Hidden by default */
+        }
+
+        .loader-content {
+            text-align: center;
+            color: var(--asu-gold);
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 198, 39, 0.3);
+            border-top: 3px solid var(--asu-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .loading-text {
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .witty-text {
+            font-size: 0.9rem;
+            color: #888;
+            font-style: italic;
+            max-width: 400px;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background: #111;
+            color: #888;
+            padding: 3rem 10%;
+            font-size: 0.9rem;
+            border-top: 4px solid var(--asu-maroon);
+            margin-top: auto;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Navigation (Visible on every page) -->
+    <!-- TRANSITION OVERLAY -->
+    <div id="transition-overlay">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <div class="loading-text">LOADING SIMULATION</div>
+            <div class="witty-text" id="witty-message">Initializing boundary layer...</div>
+        </div>
+    </div>
+
+    <!-- NAVIGATION -->
     <nav>
-        <div class="nav-logo"><i class="fas fa-wind"></i> LANCA | ASU</div>
+        <div class="nav-logo">
+            <i class="fas fa-wind" style="color:var(--asu-gold)"></i> LANCA | ASU
+        </div>
         <div class="nav-links">
-            <a href="{{ site.baseurl }}/">Home</a>
-            <a href="{{ site.baseurl }}/#research">Research</a>
-            <a href="{{ site.baseurl }}/#publications">Publications</a>
-            <a href="{{ site.baseurl }}/team.html">Team</a>
+            <a href="{{ site.baseurl }}/" class="nav-link">Home</a>
+            <!-- UPDATED LINKS: Points to .html files and includes 'nav-link' class -->
+            <a href="{{ site.baseurl }}/research.html" class="nav-link">Research</a>
+            <a href="{{ site.baseurl }}/publications.html" class="nav-link">Publications</a>
+            <a href="{{ site.baseurl }}/team.html" class="nav-link">Team</a>
         </div>
     </nav>
 
-    <!-- THIS IS THE MAGIC PART -->
-    <!-- Jekyll will inject the specific page content right here: -->
-    {{ content }}
+    <!-- PAGE CONTENT -->
+    <main>
+        {{ content }}
+    </main>
 
-    <!-- Footer (Visible on every page) -->
+    <!-- FOOTER -->
     <footer>
         <p><strong>Laboratory for Analytical and Computational Analysis</strong><br>
         Arizona State University, Tempe, AZ 85281</p>
-        <p style="margin-top:10px; font-size:0.8rem; opacity: 0.8;">
+        <p style="margin-top:10px; font-size:0.8rem; opacity: 0.6;">
             This website is managed by LANCA members and is not an official ASU page.
         </p>
     </footer>
+
+    <!-- TRANSITION LOGIC -->
+    <script>
+        const wittyMessages = [
+            "Running RANS solver...",
+            "Converging residuals...",
+            "Discretizing the domain...",
+            "Checking Kutta condition...",
+            "Meshing the boundary layer...",
+            "Adding turbulence...",
+            "Please wait, simulating viscous effects...",
+            "Calculating lift coefficient...",
+            "Detecting flow separation..."
+        ];
+
+        // Handle Link Clicks
+        document.querySelectorAll('.nav-link, .btn-research').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault(); // Stop immediate load
+                const targetUrl = this.getAttribute('href');
+
+                // 1. Pick a random witty message
+                const msg = wittyMessages[Math.floor(Math.random() * wittyMessages.length)];
+                document.getElementById('witty-message').innerText = msg;
+
+                // 2. Fade in Overlay
+                const overlay = document.getElementById('transition-overlay');
+                overlay.style.pointerEvents = 'auto'; // Block clicks
+                
+                // GSAP Fade In
+                gsap.to(overlay, {
+                    opacity: 1,
+                    duration: 0.5,
+                    onComplete: () => {
+                        // 3. Wait a moment (simulate load) then go
+                        setTimeout(() => {
+                            window.location.href = targetUrl;
+                        }, 800); // 800ms delay for effect
+                    }
+                });
+            });
+        });
+
+        // Handle Page Load (Fade Out Overlay)
+        window.addEventListener('load', () => {
+            const overlay = document.getElementById('transition-overlay');
+            // If overlay was visible (from back button), fade it out
+            gsap.to(overlay, {
+                opacity: 0,
+                duration: 0.8,
+                delay: 0.2,
+                onComplete: () => {
+                    overlay.style.pointerEvents = 'none';
+                }
+            });
+        });
+    </script>
+
 </body>
 </html>
