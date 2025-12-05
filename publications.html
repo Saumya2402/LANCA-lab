@@ -5,7 +5,7 @@ title: Publications
 
 <style>
     .empty-state {
-        min-height: 60vh;
+        min-height: 70vh;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -13,20 +13,88 @@ title: Publications
         background-color: #f5f5f5;
         text-align: center;
         padding: 2rem;
+        border-top: 5px solid #8C1D40;
     }
-    .empty-icon { font-size: 4rem; color: #ddd; margin-bottom: 1rem; }
-    .construction-badge { background: #FFC627; color: #000; padding: 5px 15px; font-weight: 700; border-radius: 20px; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 1rem; display: inline-block; }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: #ddd;
+        margin-bottom: 1.5rem;
+    }
+
+    .construction-badge {
+        background: #FFC627;
+        color: #000;
+        padding: 8px 20px;
+        font-weight: 700;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        display: inline-block;
+    }
+
+    .empty-state h1 {
+        color: #8C1D40;
+        font-family: 'Oswald', sans-serif;
+        font-size: 3rem;
+        margin: 0 0 1rem 0;
+        text-transform: uppercase;
+    }
+
+    .empty-state p {
+        color: #555;
+        max-width: 600px;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        font-size: 1.1rem;
+    }
+
+    .witty-quote {
+        font-style: italic;
+        color: #888;
+        font-size: 1rem;
+        margin-bottom: 3rem;
+        font-family: serif;
+    }
+
+    .return-btn {
+        text-decoration: none;
+        color: #8C1D40;
+        font-weight: 700;
+        border: 2px solid #8C1D40;
+        padding: 10px 25px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+    }
+
+    .return-btn:hover {
+        background-color: #8C1D40;
+        color: white;
+    }
 </style>
 
 <div class="empty-state">
-    <div class="construction-badge"><i class="fas fa-book"></i> Coming Soon</div>
+    <div class="construction-badge"><i class="fas fa-book"></i> Archive Pending</div>
+    
     <div class="empty-icon"><i class="fas fa-file-alt"></i></div>
-    <h1 style="color: #8C1D40; font-family: 'Oswald'; font-size: 2.5rem; margin:0;">Publications Archive</h1>
-    <p style="color: #666; max-width: 500px; margin-top: 1rem; line-height: 1.6;">
-        Our team is compiling a list of recent journal articles and conference papers (AIAA, JFM, APS).
+    
+    <h1>Publications Archive</h1>
+    
+    <p>
+        Our team is compiling a comprehensive list of recent journal articles and conference papers 
+        (AIAA, JFM, APS) related to unsteady aerodynamics.
     </p>
-    <p style="font-style: italic; color: #888; font-size: 0.9rem;">
-        Check back soon for PDFs and BibTeX citations.
+    
+    <p class="witty-quote">
+        "Check back soon for PDFs, DOIs, and BibTeX citations."
     </p>
-    <a href="{{ site.baseurl }}/" style="margin-top: 2rem; color: #8C1D40; font-weight: 700;">&larr; Return Home</a>
+    
+    <a href="{{ site.baseurl }}/" class="return-btn">
+        <i class="fas fa-arrow-left"></i> Return Home
+    </a>
 </div>
