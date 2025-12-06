@@ -562,7 +562,7 @@ title: Home
 })();
 </script>
 
-<!-- FLUID BACKGROUND ENGINE (LANCA-branded, lazy init for GPU Turbulence) -->
+<!-- FLUID BACKGROUND ENGINE (LANCA-branded, lazy init for GPU Turbulence, Style B) -->
 <script>
 (function () {
 
@@ -575,7 +575,8 @@ title: Home
     if (!canvas) return;
 
     const config = {
-      SPLAT_RADIUS: 0.22   // relative radius for splats
+      // smaller radius -> finer structures, less "giant gradient"
+      SPLAT_RADIUS: 0.08
     };
 
     function scaleByPixelRatio(v) {
@@ -584,8 +585,10 @@ title: Home
     }
 
     function resizeCanvas() {
-      const width  = scaleByPixelRatio(canvas.clientWidth  || window.innerWidth);
-      const height = scaleByPixelRatio(canvas.clientHeight || window.innerHeight);
+      // robust size query; avoids 0x0 when using fixed/percentage layout
+      const rect = canvas.getBoundingClientRect();
+      const width  = scaleByPixelRatio(rect.width  || window.innerWidth);
+      const height = scaleByPixelRatio(rect.height || window.innerHeight);
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width  = width;
         canvas.height = height;
@@ -619,7 +622,6 @@ title: Home
       const prog = gl.createProgram();
       gl.attachShader(prog, vs);
       gl.attachShader(prog, fs);
-      // ensure attribute location 0 is aPosition
       gl.bindAttribLocation(prog, 0, "aPosition");
       gl.linkProgram(prog);
       return prog;
@@ -653,9 +655,10 @@ title: Home
         vec3 splat = falloff * color;
         vec3 base  = texture2D(uTarget, vUv).rgb;
 
-        // Slight nonlinearity to make bright cores and smooth edges
         vec3 ink = base + splat;
+        // gently nonlinear gamma to keep contrast but avoid blowout
         ink = pow(ink, vec3(0.9));
+        ink = min(ink, vec3(1.1));
 
         gl_FragColor = vec4(ink, 1.0);
       }
@@ -787,7 +790,7 @@ title: Home
         [255, 235, 200]   // pale gold highlight
       ];
       const c = palette[Math.floor(Math.random() * palette.length)];
-      const k = 0.5 + 0.7 * Math.random(); // vary intensity
+      const k = 0.6 + 0.6 * Math.random(); // moderate intensity
       return {
         r: (c[0] / 255) * k,
         g: (c[1] / 255) * k,
@@ -804,14 +807,14 @@ title: Home
       gl.uniform1f(splatProgram.uniforms.aspectRatio, canvas.width / canvas.height);
       gl.uniform2f(splatProgram.uniforms.point, x, y);
 
-      // first pass: velocity-tinted core (subtle)
+      // first pass: very subtle velocity core
       gl.uniform3f(
         splatProgram.uniforms.color,
-        dx * 0.00003,
-        dy * 0.00003,
+        dx * 0.00002,
+        dy * 0.00002,
         0.0
       );
-      gl.uniform1f(splatProgram.uniforms.radius, config.SPLAT_RADIUS * 0.6);
+      gl.uniform1f(splatProgram.uniforms.radius, config.SPLAT_RADIUS * 0.4);
       blit(dye.write);
       dye.swap();
 
@@ -824,9 +827,9 @@ title: Home
       gl.uniform2f(splatProgram.uniforms.point, x, y);
       gl.uniform3f(
         splatProgram.uniforms.color,
-        color.r * 2.2,
-        color.g * 2.2,
-        color.b * 2.2
+        color.r * 1.6,
+        color.g * 1.6,
+        color.b * 1.6
       );
       gl.uniform1f(splatProgram.uniforms.radius, config.SPLAT_RADIUS);
       blit(dye.write);
@@ -837,14 +840,14 @@ title: Home
       for (let i = 0; i < n; i++) {
         const x  = Math.random();
         const y  = Math.random();
-        const dx = (Math.random() - 0.5) * 2200;
-        const dy = (Math.random() - 0.5) * 2200;
+        const dx = (Math.random() - 0.5) * 1800;
+        const dy = (Math.random() - 0.5) * 1800;
         splat(x, y, dx, dy, generateBrandColor());
       }
     }
 
-    // initial vortices when GPU mode first enabled
-    randomSplats(8);
+    // initial vortices when GPU mode first enabled (medium density)
+    randomSplats(6);
 
     // -------- render loop --------
     function render() {
@@ -869,8 +872,8 @@ title: Home
       const current = window.scrollY || 0;
       const dy = Math.abs(current - lastScroll);
       lastScroll = current;
-      const intensity = Math.min(24, dy * 0.12);
-      if (intensity > 0.6) {
+      const intensity = Math.min(10, dy * 0.08); // medium response
+      if (intensity > 0.4) {
         splatStack.push(intensity);
       }
     });
@@ -887,8 +890,8 @@ title: Home
     // gentle background motion to keep vortices alive
     setInterval(() => {
       if (!window.fluidActive) return;
-      randomSplats(2);
-    }, 1500);
+      randomSplats(1);
+    }, 1600);
   };
 
 })();
