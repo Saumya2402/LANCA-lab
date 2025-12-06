@@ -17,8 +17,7 @@ title: Home
         font-family: 'Roboto', sans-serif;
     }
 
-    /* Container for BOTH simulations */
-    #sim-container {
+    #webgl-container {
         position: fixed;
         top: 0;
         left: 0;
@@ -26,62 +25,6 @@ title: Home
         height: 100vh;
         z-index: -1;
     }
-
-    /* Canvas for Airfoil (Three.js) */
-    #airfoil-canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 1;
-        transition: opacity 1s ease;
-    }
-
-    /* Canvas for Fluid (WebGL) */
-    #fluid-canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 0; /* Behind initially */
-        opacity: 0; /* Hidden initially */
-        transition: opacity 1s ease;
-    }
-
-    /* --- UI CONTROLS --- */
-    #sim-ui {
-        position: fixed;
-        top: 100px;
-        right: 40px;
-        z-index: 100;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .sim-btn {
-        background: rgba(20, 20, 20, 0.6);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,0.1);
-        color: white;
-        padding: 10px 20px;
-        cursor: pointer;
-        border-radius: 4px;
-        font-family: 'Oswald', sans-serif;
-        text-transform: uppercase;
-        transition: all 0.3s ease;
-        text-align: right;
-        width: 180px;
-    }
-
-    .sim-btn.active {
-        border-right: 4px solid #FFC627;
-        background: rgba(140, 29, 64, 0.8);
-    }
-
-    .sim-btn:hover { background: rgba(140, 29, 64, 0.4); }
 
     /* --- SECTIONS --- */
     .scroll-section {
@@ -128,18 +71,16 @@ title: Home
 
     /* --- HIGHLIGHT BOX --- */
     .research-highlight {
-        background: rgba(20, 20, 20, 0.2); /* Glassy */
-        backdrop-filter: blur(8px);        
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.1); 
-        border-left: 6px solid #8C1D40;        
+        background: rgba(10, 10, 10, 0.85);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-left: 6px solid #8C1D40;
         padding: 3rem;
         max-width: 600px;
         pointer-events: auto;
         opacity: 0;
         transform: translateY(50px);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); 
-        margin-bottom: 15vh;
+        margin-bottom: 10vh; /* Spacing between boxes */
     }
 
     .research-highlight h2 {
@@ -147,10 +88,15 @@ title: Home
         margin: 0 0 1rem 0;
         font-family: 'Oswald', sans-serif;
         color: #fff;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
     }
-    
-    .research-highlight p { text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+
+    /* GPU Box Specific Style */
+    .gpu-box {
+        margin-left: auto; /* Align right */
+        border-left: none;
+        border-right: 6px solid #FFC627; /* Gold accent */
+        text-align: right;
+    }
 
     .gpu-tag {
         display: inline-block;
@@ -164,7 +110,7 @@ title: Home
         letter-spacing: 1px;
     }
 
-    /* --- GEOMETRY SECTION --- */
+    /* --- AIRFOIL COMPARISON SECTION --- */
     #geometry-section {
         background-color: #f4f4f4;
         color: #191919;
@@ -197,52 +143,58 @@ title: Home
         text-align: center;
         transition: transform 0.3s ease;
     }
+
     .ratio-card:hover { transform: translateY(-5px); }
 
     .ratio-img-placeholder {
-        width: 100%; height: 200px;
+        width: 100%;
+        height: 200px;
         background-color: white;
-        display: flex; align-items: center; justify-content: center;
-        margin-bottom: 15px; overflow: hidden; border: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        overflow: hidden;
+        border: 1px solid #eee;
     }
-    .ratio-img-placeholder img { width: 100%; height: 100%; object-fit: contain; }
+    
+    .ratio-img-placeholder img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
     .ratio-title { font-weight: 700; color: #8C1D40; font-size: 1.2rem; margin-bottom: 5px; }
     .ratio-desc { font-size: 0.9rem; color: #555; line-height: 1.5; }
 
     .btn-research {
-        display: inline-block; padding: 18px 40px;
-        background-color: #8C1D40; color: white;
-        font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-        text-decoration: none; border-radius: 2px;
+        display: inline-block;
+        padding: 18px 40px;
+        background-color: #8C1D40;
+        color: white;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        border-radius: 2px;
         transition: all 0.3s ease;
         box-shadow: 0 5px 15px rgba(140, 29, 64, 0.3);
     }
+
     .btn-research:hover {
         background-color: #6d1632;
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(140, 29, 64, 0.4);
     }
 
-    @media (max-width: 768px) { .lab-title-block h1 { font-size: 3.5rem; } }
+    @media (max-width: 768px) {
+        .lab-title-block h1 { font-size: 3.5rem; }
+        .research-highlight { margin-left: 0; text-align: left; border-right: none; border-left: 6px solid #FFC627; }
+    }
 </style>
 
-<!-- SIMULATION CONTAINER -->
-<div id="sim-container">
-    <canvas id="fluid-canvas"></canvas>
-    <div id="airfoil-canvas"></div> <!-- ThreeJS container -->
-</div>
-
-<!-- TOGGLE UI -->
-<div id="sim-ui">
-    <div class="sim-btn active" id="btn-airfoil" onclick="switchSim('airfoil')">
-        Airfoil Physics
-        <div style="font-size:0.7rem; opacity:0.7;">Pot. Flow</div>
-    </div>
-    <div class="sim-btn" id="btn-fluid" onclick="switchSim('fluid')">
-        GPU Turbulence
-        <div style="font-size:0.7rem; opacity:0.7;">Navier-Stokes</div>
-    </div>
-</div>
+<!-- 3D BACKGROUND CANVAS -->
+<div id="webgl-container"></div>
 
 <!-- SCROLLABLE CONTENT -->
 <div id="page-content">
@@ -253,9 +205,11 @@ title: Home
             <h1>Laboratory for<br>Analytical &<br>Computational Analysis</h1>
             <p>Fundamental Aerodynamics • High-Fidelity CFD</p>
         </div>
+        
         <div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; letter-spacing: 2px; opacity: 0.6; text-transform: uppercase;">
             Scroll to Pitch Airfoil
-            <br><i class="fas fa-chevron-down" style="display:block; text-align:center; margin-top:10px; animation: bounce 2s infinite;"></i>
+            <br>
+            <i class="fas fa-chevron-down" style="display:block; text-align:center; margin-top:10px; animation: bounce 2s infinite;"></i>
         </div>
     </section>
 
@@ -268,675 +222,376 @@ title: Home
             <h2>Trailing Edge Geometry</h2>
             <p>
                 We investigate the fundamental trade-offs between <strong>Sharp</strong> and <strong>Rounded</strong> trailing edges.
+            </p>
+            <p style="margin-top: 1rem;">
                 While sharp edges maximize steady lift, rounded edges (common in manufacturing) introduce complex unsteady behaviors where the <strong>Kutta condition fails</strong>, delaying circulation buildup.
             </p>
         </div>
     </section>
 
-    <!-- SECTION 3: GPU RESEARCH -->
+    <!-- SECTION 3: GPU RESEARCH (NEW) -->
     <section class="scroll-section" id="section-gpu">
-        <div class="research-highlight" style="margin-left: 0; margin-right: auto; border-left: none; border-right: 6px solid #FFC627;">
+        <div class="research-highlight gpu-box">
             <div class="gpu-tag">GPU ACCELERATION + AI</div>
-            <h2>3D Flow Super-Resolution</h2>
+            <div style="text-transform: uppercase; color: #FFC627; font-weight: 700; margin-bottom: 10px; font-size: 0.9rem; letter-spacing: 1px; margin-top:5px;">
+                Computational Research
+            </div>
+            <h2>GPU Accelerated Simulation</h2>
             <p>
                 We enhance low-resolution unsteady flows (e.g., Taylor–Green vortex on 128³ grids) using a 
                 <strong>3D Attention-Augmented U-Net</strong>.
             </p>
             <p style="margin-top: 1rem;">
-                This model reconstructs fine-scale vorticity fields comparable to 
-                high-fidelity <strong>Remeshed Vortex Methods (RVM)</strong>, enabling efficient modeling of turbulent coherent structures.
+                This data-driven super-resolution model reconstructs fine-scale vorticity fields comparable to 
+                high-fidelity Remeshed Vortex Methods (RVM), enabling rapid modeling of turbulent structures.
             </p>
-            <div style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.8; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
-                <i class="fas fa-mouse-pointer"></i> <strong>Interactive:</strong> Click "GPU Turbulence" (Top Right) to interact with the solver.
-            </div>
         </div>
     </section>
 
-    <!-- SECTION 4: COMPARISON -->
+    <!-- SECTION 4: GEOMETRY COMPARISON -->
     <section id="geometry-section">
         <div class="section-header">
             <h3>The Round Trailing Edge Family</h3>
             <p style="max-width: 800px; font-size: 1.1rem; line-height: 1.6;">
-                Our study analyzes a family of Joukowski-derived airfoils with varying trailing edge bluntness.
+                Our study analyzes a family of Joukowski-derived airfoils with varying trailing edge bluntness. 
+                The geometric "Ratio" determines the sharpness—Ratio 100 being nearly sharp, and Ratio 1 being extremely blunt.
             </p>
         </div>
+
         <div class="ratio-grid">
+            <!-- Ratio 1 -->
             <div class="ratio-card">
-                <div class="ratio-img-placeholder"><img src="assets/images/ratio1.png" onerror="this.src='https://via.placeholder.com/400x300?text=Ratio+1'" alt="Ratio 1"></div>
-                <div class="ratio-title">Ratio 1 (Blunt)</div>
-                <div class="ratio-desc">Zero Initial Lift. Significant separation bubble.</div>
+                <div class="ratio-img-placeholder">
+                    <img src="assets/images/ratio1.png" onerror="this.src='https://via.placeholder.com/400x300?text=Ratio+1+(Blunt)'" alt="Ratio 1 Airfoil">
+                </div>
+                <div class="ratio-title">Ratio 1:12 (Blunt)</div>
+                <div class="ratio-desc">
+                    <strong>Zero Initial Lift.</strong> Significant separation bubble and no Kutta condition establishment.
+                </div>
             </div>
+
+            <!-- Ratio 4 -->
             <div class="ratio-card">
-                <div class="ratio-img-placeholder"><img src="assets/images/ratio4.png" onerror="this.src='https://via.placeholder.com/400x300?text=Ratio+4'" alt="Ratio 4"></div>
-                <div class="ratio-title">Ratio 4 (Rounded)</div>
-                <div class="ratio-desc">Delayed Circulation. Stagnation point traverse required.</div>
+                <div class="ratio-img-placeholder">
+                    <img src="assets/images/ratio4.png" onerror="this.src='https://via.placeholder.com/400x300?text=Ratio+4+(Rounded)'" alt="Ratio 4 Airfoil">
+                </div>
+                <div class="ratio-title">Ratio 4:12 (Rounded)</div>
+                <div class="ratio-desc">
+                    <strong>Delayed Circulation.</strong> Stagnation point must traverse the rounded edge before lift builds.
+                </div>
             </div>
+
+            <!-- Ratio 100 -->
             <div class="ratio-card">
-                <div class="ratio-img-placeholder"><img src="assets/images/ratio100.png" onerror="this.src='https://via.placeholder.com/400x300?text=Ratio+100'" alt="Ratio 100"></div>
-                <div class="ratio-title">Ratio 100 (Sharp)</div>
-                <div class="ratio-desc">Wagner Effect. Instant 50% lift generation.</div>
+                <div class="ratio-img-placeholder">
+                    <img src="assets/images/ratio100.png" onerror="this.src='https://via.placeholder.com/400x300?text=Ratio+100+(Sharp)'" alt="Ratio 100 Airfoil">
+                </div>
+                <div class="ratio-title">Ratio 100:12 (Sharp)</div>
+                <div class="ratio-desc">
+                    <strong>Wagner Effect.</strong> Instantaneous 50% lift generation due to sharp TE singularity.
+                </div>
             </div>
         </div>
+
         <div style="text-align: center; margin-top: 4rem;">
-            <a href="https://saumya2402.github.io/LANCA-lab/#research" class="btn-research">Learn More <i class="fas fa-arrow-right"></i></a>
+            <a href="research.html" class="btn-research">
+                Learn More <i class="fas fa-arrow-right" style="margin-left: 10px;"></i>
+            </a>
         </div>
     </section>
 
 </div>
 
-<!-- SCRIPTS -->
+<!-- LOGIC SCRIPTS -->
 <script>
 (function() {
-    // --- 1. FLUID SIMULATION (Full WebGL Solver) ---
-    const FluidSim = (function() {
-        let canvas, gl;
-        let config = {
-            TEXTURE_DOWNSAMPLE: 1,
-            DENSITY_DISSIPATION: 0.98,
-            VELOCITY_DISSIPATION: 0.99,
-            PRESSURE_DISSIPATION: 0.8,
-            PRESSURE_ITERATIONS: 25,
-            CURL: 30,
-            SPLAT_RADIUS: 0.005
-        };
+
+    // --- 1. SETUP SCENE ---
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050505);
+    scene.fog = new THREE.FogExp2(0x050505, 0.05);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    // Move camera back to avoid "Zoomed In" feel
+    camera.position.z = 7.0; 
+    
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const container = document.getElementById('webgl-container');
+    if(container) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+    }
+
+    // --- 2. JOUKOWSKI AIRFOIL GENERATION (Exact MATLAB Port) ---
+    
+    // Parameters tuned for symmetric NACA 0012 approximation
+    const chord = 1.0;
+    const b = chord / 4.0; 
+    const max_thickness = 0.12;
+    const e = max_thickness / 1.3; 
+    const beta = 0; // Symmetric
+    
+    const a = b * (1 + e) / Math.cos(beta); // Circle radius
+    const mu_x = -b * e; 
+    const mu_y = a * beta; 
+
+    // Generate Shape Points
+    const airfoilShape = new THREE.Shape();
+    const steps = 120;
+    
+    for(let i = 0; i <= steps; i++) {
+        const theta = (i / steps) * Math.PI * 2;
         
-        let pointers = [];
-        let splatStack = [];
-
-        function pointerPrototype () {
-            this.id = -1;
-            this.x = 0;
-            this.y = 0;
-            this.dx = 0;
-            this.dy = 0;
-            this.down = false;
-            this.moved = false;
-            this.color = [30, 0, 300];
-        }
-        pointers.push(new pointerPrototype());
-
-        // Shader Sources (Inlined for single-file portability)
-        const baseVertexShader = `
-            precision highp float;
-            attribute vec2 aPosition;
-            varying vec2 vUv;
-            varying vec2 vL;
-            varying vec2 vR;
-            varying vec2 vT;
-            varying vec2 vB;
-            uniform vec2 texelSize;
-            void main () {
-                vUv = aPosition * 0.5 + 0.5;
-                vL = vUv - vec2(texelSize.x, 0.0);
-                vR = vUv + vec2(texelSize.x, 0.0);
-                vT = vUv + vec2(0.0, texelSize.y);
-                vB = vUv - vec2(0.0, texelSize.y);
-                gl_Position = vec4(aPosition, 0.0, 1.0);
-            }
-        `;
-
-        const displayShaderSource = `
-            precision highp float;
-            precision highp sampler2D;
-            varying vec2 vUv;
-            varying vec2 vL;
-            varying vec2 vR;
-            varying vec2 vT;
-            varying vec2 vB;
-            uniform sampler2D uTexture;
-            uniform sampler2D uBloom;
-            uniform sampler2D uSunrays;
-            uniform sampler2D uDithering;
-            uniform vec2 ditherScale;
-            uniform vec2 texelSize;
-            void main () {
-                vec3 c = texture2D(uTexture, vUv).rgb;
-                // Simple tone mapping
-                c = c / (c + vec3(1.0)); 
-                gl_FragColor = vec4(c, 1.0);
-            }
-        `;
-
-        const splatShaderSource = `
-            precision highp float;
-            precision highp sampler2D;
-            varying vec2 vUv;
-            uniform sampler2D uTarget;
-            uniform float aspectRatio;
-            uniform vec3 color;
-            uniform vec2 point;
-            uniform float radius;
-            void main () {
-                vec2 p = vUv - point.xy;
-                p.x *= aspectRatio;
-                vec3 splat = exp(-dot(p, p) / radius) * color;
-                vec3 base = texture2D(uTarget, vUv).xyz;
-                gl_FragColor = vec4(base + splat, 1.0);
-            }
-        `;
-
-        const advectionShaderSource = `
-            precision highp float;
-            precision highp sampler2D;
-            varying vec2 vUv;
-            uniform sampler2D uVelocity;
-            uniform sampler2D uSource;
-            uniform vec2 texelSize;
-            uniform float dt;
-            uniform float dissipation;
-            void main () {
-                vec2 coord = vUv - dt * texture2D(uVelocity, vUv).xy * texelSize;
-                gl_FragColor = dissipation * texture2D(uSource, coord);
-                gl_FragColor.a = 1.0;
-            }
-        `;
-
-        const divergenceShaderSource = `
-            precision highp float;
-            precision highp sampler2D;
-            varying vec2 vUv;
-            varying vec2 vL;
-            varying vec2 vR;
-            varying vec2 vT;
-            varying vec2 vB;
-            uniform sampler2D uVelocity;
-            void main () {
-                float L = texture2D(uVelocity, vL).x;
-                float R = texture2D(uVelocity, vR).x;
-                float T = texture2D(uVelocity, vT).y;
-                float B = texture2D(uVelocity, vB).y;
-                vec2 C = texture2D(uVelocity, vUv).xy;
-                if (vL.x < 0.0) { L = -C.x; }
-                if (vR.x > 1.0) { R = -C.x; }
-                if (vT.y > 1.0) { T = -C.y; }
-                if (vB.y < 0.0) { B = -C.y; }
-                float div = 0.5 * (R - L + T - B);
-                gl_FragColor = vec4(div, 0.0, 0.0, 1.0);
-            }
-        `;
-
-        const curlShaderSource = `
-            precision highp float;
-            precision highp sampler2D;
-            varying vec2 vUv;
-            varying vec2 vL;
-            varying vec2 vR;
-            varying vec2 vT;
-            varying vec2 vB;
-            uniform sampler2D uVelocity;
-            void main () {
-                float L = texture2D(uVelocity, vL).y;
-                float R = texture2D(uVelocity, vR).y;
-                float T = texture2D(uVelocity, vT).x;
-                float B = texture2D(uVelocity, vB).x;
-                float vorticity = R - L - T + B;
-                gl_FragColor = vec4(0.5 * vorticity, 0.0, 0.0, 1.0);
-            }
-        `;
-
-        const vorticityShaderSource = `
-            precision highp float;
-            precision highp sampler2D;
-            varying vec2 vUv;
-            varying vec2 vL;
-            varying vec2 vR;
-            varying vec2 vT;
-            varying vec2 vB;
-            uniform sampler2D uVelocity;
-            uniform sampler2D uCurl;
-            uniform float curl;
-            uniform float dt;
-            void main () {
-                float L = texture2D(uCurl, vL).x;
-                float R = texture2D(uCurl, vR).x;
-                float T = texture2D(uCurl, vT).x;
-                float B = texture2D(uCurl, vB).x;
-                float C = texture2D(uCurl, vUv).x;
-                vec2 force = 0.5 * vec2(abs(T) - abs(B), abs(R) - abs(L));
-                force /= length(force) + 0.0001;
-                force *= curl * C;
-                force.y *= -1.0;
-                vec2 vel = texture2D(uVelocity, vUv).xy;
-                gl_FragColor = vec4(vel + force * dt, 0.0, 1.0);
-            }
-        `;
-
-        const pressureShaderSource = `
-            precision highp float;
-            precision highp sampler2D;
-            varying vec2 vUv;
-            varying vec2 vL;
-            varying vec2 vR;
-            varying vec2 vT;
-            varying vec2 vB;
-            uniform sampler2D uPressure;
-            uniform sampler2D uDivergence;
-            void main () {
-                float L = texture2D(uPressure, vL).x;
-                float R = texture2D(uPressure, vR).x;
-                float T = texture2D(uPressure, vT).x;
-                float B = texture2D(uPressure, vB).x;
-                float C = texture2D(uPressure, vUv).x;
-                float divergence = texture2D(uDivergence, vUv).x;
-                float pressure = (L + R + B + T - divergence) * 0.25;
-                gl_FragColor = vec4(pressure, 0.0, 0.0, 1.0);
-            }
-        `;
-
-        const gradientSubtractShaderSource = `
-            precision highp float;
-            precision highp sampler2D;
-            varying vec2 vUv;
-            varying vec2 vL;
-            varying vec2 vR;
-            varying vec2 vT;
-            varying vec2 vB;
-            uniform sampler2D uPressure;
-            uniform sampler2D uVelocity;
-            void main () {
-                float L = texture2D(uPressure, vL).x;
-                float R = texture2D(uPressure, vR).x;
-                float T = texture2D(uPressure, vT).x;
-                float B = texture2D(uPressure, vB).x;
-                vec2 velocity = texture2D(uVelocity, vUv).xy;
-                velocity.xy -= vec2(R - L, T - B);
-                gl_FragColor = vec4(velocity, 0.0, 1.0);
-            }
-        `;
-
-        let density, velocity, divergence, curl, pressure;
-        let splatProgram, advectionProgram, divergenceProgram, curlProgram, vorticityProgram, pressureProgram, gradienSubtractProgram, displayProgram;
+        // 1. Point on Cylinder (Zeta plane)
+        const zeta_x = mu_x + a * Math.cos(theta);
+        const zeta_y = mu_y + a * Math.sin(theta);
         
-        function init() {
-            canvas = document.getElementById('fluid-canvas');
-            resizeCanvas();
-            const params = { alpha: true, depth: false, stencil: false, antialias: false, preserveDrawingBuffer: false };
-            gl = canvas.getContext('webgl2', params);
-            const isWebGL2 = !!gl;
-            if (!isWebGL2) gl = canvas.getContext('webgl', params) || canvas.getContext('experimental-webgl', params);
+        // 2. Joukowski Transform
+        const denom = zeta_x*zeta_x + zeta_y*zeta_y;
+        const z_x = zeta_x * (1 + (b*b)/denom);
+        const z_y = zeta_y * (1 - (b*b)/denom);
+        
+        if(i === 0) airfoilShape.moveTo(z_x, z_y);
+        else airfoilShape.lineTo(z_x, z_y);
+    }
 
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    const geometry = new THREE.ExtrudeGeometry(airfoilShape, { depth: 0.2, bevelEnabled: false });
+    geometry.center(); 
 
-            // Initialize FBOs
-            const texType = isWebGL2 ? gl.HALF_FLOAT : gl.FLOAT; // Support half float if webgl2
-            // Simplified FBO creation for brevity
-            density = createDoubleFBO(2, 512, 512, gl.RGBA, gl.LINEAR, texType);
-            velocity = createDoubleFBO(0, 256, 256, gl.RG, gl.LINEAR, texType); // Lower res velocity
-            divergence = createFBO(4, 256, 256, gl.RGB, gl.NEAREST, texType);
-            curl = createFBO(5, 256, 256, gl.RGB, gl.NEAREST, texType);
-            pressure = createDoubleFBO(6, 256, 256, gl.RGB, gl.NEAREST, texType);
+    const material = new THREE.MeshBasicMaterial({ 
+        color: 0x8C1D40, 
+        wireframe: true,
+        transparent: true,
+        opacity: 0.3 
+    });
+    const airfoil = new THREE.Mesh(geometry, material);
+    
+    const core = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 0x050505 }));
+    core.scale.set(0.99, 0.99, 1);
+    airfoil.add(core);
+    scene.add(airfoil);
 
-            // Initialize Programs
-            splatProgram = createProgram('splat', splatShaderSource);
-            advectionProgram = createProgram('advection', advectionShaderSource);
-            divergenceProgram = createProgram('divergence', divergenceShaderSource);
-            curlProgram = createProgram('curl', curlShaderSource);
-            vorticityProgram = createProgram('vorticity', vorticityShaderSource);
-            pressureProgram = createProgram('pressure', pressureShaderSource);
-            gradienSubtractProgram = createProgram('gradientSubtract', gradientSubtractShaderSource);
-            displayProgram = createProgram('display', displayShaderSource);
+    // --- 3. STREAMLINES ---
+    const lineCount = 60;
+    const particlesPerLine = 60;
+    const particleGeo = new THREE.BufferGeometry();
+    const positions = [];
+    const pState = []; 
 
-            // Event Listeners
-            canvas.addEventListener('mousemove', e => {
-                pointers[0].moved = pointers[0].down;
-                pointers[0].dx = (e.offsetX - pointers[0].x) * 5.0;
-                pointers[0].dy = (e.offsetY - pointers[0].y) * 5.0;
-                pointers[0].x = e.offsetX;
-                pointers[0].y = e.offsetY;
+    for(let i = 0; i < lineCount; i++) {
+        let yNorm = (i / (lineCount-1)) * 2 - 1; 
+        const yStart = Math.sign(yNorm) * Math.pow(Math.abs(yNorm), 1.1) * 4.0;
+        
+        for(let j = 0; j < particlesPerLine; j++) {
+            const xStart = (j / particlesPerLine) * 20 - 10;
+            positions.push(xStart, yStart, 0);
+            pState.push({
+                x: xStart,
+                y: yStart,
+                speed: 0.05 
             });
-            canvas.addEventListener('mousedown', () => {
-                pointers[0].down = true;
-                pointers[0].color = [Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2];
-            });
-            window.addEventListener('mouseup', () => { pointers[0].down = false; });
-            window.addEventListener('resize', resizeCanvas);
-
-            requestAnimationFrame(update);
         }
+    }
 
-        function update(t) {
-            if (window.currentSim === 'fluid') {
-                const dt = 0.016;
-                
-                // Splat
-                if (pointers[0].down) {
-                    splat(pointers[0].x, pointers[0].y, pointers[0].dx, pointers[0].dy, pointers[0].color);
-                }
+    particleGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    const flowField = new THREE.Points(particleGeo, new THREE.PointsMaterial({
+        color: 0xFFC627,
+        size: 0.035,
+        transparent: true,
+        opacity: 0.6
+    }));
+    scene.add(flowField);
 
-                // Curl
-                curlProgram.bind();
-                gl.uniform2f(curlProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-                gl.uniform1i(curlProgram.uniforms.uVelocity, velocity.read.attach(0));
-                blit(curl.fbo);
 
-                // Vorticity
-                vorticityProgram.bind();
-                gl.uniform2f(vorticityProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-                gl.uniform1i(vorticityProgram.uniforms.uVelocity, velocity.read.attach(0));
-                gl.uniform1i(vorticityProgram.uniforms.uCurl, curl.attach(1));
-                gl.uniform1f(vorticityProgram.uniforms.curl, config.CURL);
-                gl.uniform1f(vorticityProgram.uniforms.dt, dt);
-                blit(velocity.write.fbo);
-                velocity.swap();
+    // --- 4. EXACT PHYSICS SOLVER (Complex Potential) ---
+    
+    let alpha = 0; 
+    const V_inf = 0.08; 
 
-                // Divergence
-                divergenceProgram.bind();
-                gl.uniform2f(divergenceProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-                gl.uniform1i(divergenceProgram.uniforms.uVelocity, velocity.read.attach(0));
-                blit(divergence.fbo);
+    function getExactVelocity(z_x, z_y, alphaVal) {
+        
+        // A. Inverse Joukowski
+        const halfZ_x = z_x / 2;
+        const halfZ_y = z_y / 2;
+        
+        const sqTerm_x = (halfZ_x*halfZ_x - halfZ_y*halfZ_y) - b*b;
+        const sqTerm_y = 2 * halfZ_x * halfZ_y;
+        
+        const r_val = Math.sqrt(sqTerm_x*sqTerm_x + sqTerm_y*sqTerm_y);
+        const r_sqrt = Math.sqrt(r_val);
+        const phi = Math.atan2(sqTerm_y, sqTerm_x);
+        
+        const root_x = r_sqrt * Math.cos(phi/2);
+        const root_y = r_sqrt * Math.sin(phi/2);
+        
+        // Pick exterior root
+        const z1_x = halfZ_x + root_x;
+        const z1_y = halfZ_y + root_y;
+        const z2_x = halfZ_x - root_x;
+        const z2_y = halfZ_y - root_y;
+        
+        const mag1 = z1_x*z1_x + z1_y*z1_y;
+        const mag2 = z2_x*z2_x + z2_y*z2_y;
+        
+        let zeta_x, zeta_y;
+        if (mag1 > mag2) { zeta_x = z1_x; zeta_y = z1_y; }
+        else { zeta_x = z2_x; zeta_y = z2_y; }
 
-                // Clear Pressure
-                pressureProgram.bind();
-                gl.uniform2f(pressureProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-                gl.uniform1i(pressureProgram.uniforms.uDivergence, divergence.attach(0));
-                for (let i = 0; i < config.PRESSURE_ITERATIONS; i++) {
-                    gl.uniform1i(pressureProgram.uniforms.uPressure, pressure.read.attach(1));
-                    blit(pressure.write.fbo);
-                    pressure.swap();
-                }
+        // B. Calculate Velocity in Circle Plane
+        const Z_x = zeta_x - mu_x;
+        const Z_y = zeta_y - mu_y;
+        
+        // Rotate input coords by -alpha (to align flow horizontally)
+        const cosMa = Math.cos(-alphaVal);
+        const sinMa = Math.sin(-alphaVal);
+        
+        const Zr_x = Z_x * cosMa - Z_y * sinMa;
+        const Zr_y = Z_x * sinMa + Z_y * cosMa;
+        
+        // Cylinder Flow: V(1 - a^2/Z^2)
+        const Zr2_x = Zr_x*Zr_x - Zr_y*Zr_y;
+        const Zr2_y = 2*Zr_x*Zr_y;
+        const modZr4 = Zr2_x*Zr2_x + Zr2_y*Zr2_y;
+        
+        if(modZr4 < 0.00001) return {u: 0, v: 0};
 
-                // Gradient Subtract
-                gradienSubtractProgram.bind();
-                gl.uniform2f(gradienSubtractProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-                gl.uniform1i(gradienSubtractProgram.uniforms.uPressure, pressure.read.attach(0));
-                gl.uniform1i(gradienSubtractProgram.uniforms.uVelocity, velocity.read.attach(1));
-                blit(velocity.write.fbo);
-                velocity.swap();
+        const invZr2_x = Zr2_x / modZr4;
+        const invZr2_y = -Zr2_y / modZr4;
+        
+        let dWdZ_x = V_inf * (1 - a*a * invZr2_x);
+        let dWdZ_y = V_inf * (0 - a*a * invZr2_y);
+        
+        // Circulation Term (Kutta Condition)
+        const Gamma = 4 * Math.PI * V_inf * a * Math.sin(alphaVal + beta);
+        
+        // i * Gamma / 2pi * (1/Zr)
+        const modZr2 = Zr_x*Zr_x + Zr_y*Zr_y;
+        const factor = Gamma / (2 * Math.PI * modZr2);
+        
+        dWdZ_x += factor * (-Zr_y); 
+        dWdZ_y += factor * (Zr_x);   // +i * (x - iy) = ix + y = y + ix
+        
+        // Rotate Velocity Vector Back: * e^(-i alpha)
+        // V_zeta = V_rot * (cos(-a) + i sin(-a))
+        const V_zeta_x = dWdZ_x * cosMa - dWdZ_y * sinMa;
+        const V_zeta_y = dWdZ_x * sinMa + dWdZ_y * cosMa;
+        
+        // C. Map to Physical Plane: / (dz/dzeta)
+        const zetaSq_x = zeta_x*zeta_x - zeta_y*zeta_y;
+        const zetaSq_y = 2*zeta_x*zeta_y;
+        const modZeta4 = zetaSq_x*zetaSq_x + zetaSq_y*zetaSq_y;
+        
+        const invZetaSq_x = zetaSq_x / modZeta4; 
+        const invZetaSq_y = -zetaSq_y / modZeta4; 
+        
+        const dZdzeta_x = 1 - b*b * invZetaSq_x;
+        const dZdzeta_y = 0 - b*b * invZetaSq_y;
+        
+        const denom = dZdzeta_x*dZdzeta_x + dZdzeta_y*dZdzeta_y;
+        
+        if(denom < 0.001) return {u: V_inf, v: 0}; // TE Singularity guard
 
-                // Advection Velocity
-                advectionProgram.bind();
-                gl.uniform2f(advectionProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-                if (!isMobile()) gl.uniform2f(advectionProgram.uniforms.dyeTexelSize, velocity.texelSizeX, velocity.texelSizeY);
-                gl.uniform1i(advectionProgram.uniforms.uVelocity, velocity.read.attach(0));
-                gl.uniform1i(advectionProgram.uniforms.uSource, velocity.read.attach(0));
-                gl.uniform1f(advectionProgram.uniforms.dt, dt);
-                gl.uniform1f(advectionProgram.uniforms.dissipation, config.VELOCITY_DISSIPATION);
-                blit(velocity.write.fbo);
-                velocity.swap();
+        // Complex Division
+        const u_phy = (V_zeta_x * dZdzeta_x + V_zeta_y * dZdzeta_y) / denom;
+        const v_phy = (V_zeta_y * dZdzeta_x - V_zeta_x * dZdzeta_y) / denom;
+        
+        // Conjugate velocity -> (u, -v)
+        return { u: u_phy, v: -v_phy };
+    }
 
-                // Advection Density
-                advectionProgram.bind();
-                gl.uniform2f(advectionProgram.uniforms.texelSize, density.texelSizeX, density.texelSizeY);
-                gl.uniform1i(advectionProgram.uniforms.uVelocity, velocity.read.attach(0));
-                gl.uniform1i(advectionProgram.uniforms.uSource, density.read.attach(1));
-                gl.uniform1f(advectionProgram.uniforms.dissipation, config.DENSITY_DISSIPATION);
-                blit(density.write.fbo);
-                density.swap();
+    function animate() {
+        requestAnimationFrame(animate);
 
-                // Display
-                gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-                displayProgram.bind();
-                gl.uniform1i(displayProgram.uniforms.uTexture, density.read.attach(0));
-                blit(null);
+        // Pitch Airfoil
+        airfoil.rotation.z = THREE.MathUtils.lerp(airfoil.rotation.z, -alpha, 0.1);
+
+        const posArr = flowField.geometry.attributes.position.array;
+        
+        const cosRot = Math.cos(-alpha);
+        const sinRot = Math.sin(-alpha);
+
+        for(let i = 0; i < pState.length; i++) {
+            const p = pState[i];
+            
+            // 1. Transform World Point -> Airfoil Local Frame
+            // Rotate by +Alpha (inverse of mesh rotation)
+            const ax = p.x * cosRot + p.y * sinRot; 
+            const ay = -p.x * sinRot + p.y * cosRot; // Note: cos(-a)=cos(a), sin(-a)=-sin(a)
+            
+            // 2. Get Velocity in Airfoil Frame
+            let vel = getExactVelocity(ax, ay, alpha);
+            
+            if(isNaN(vel.u) || isNaN(vel.v)) vel = {u: V_inf, v: 0};
+
+            // 3. Rotate Velocity -> World Frame
+            // Rotate vector by -Alpha
+            const worldU = vel.u * cosRot - vel.v * sinRot;
+            const worldV = vel.u * sinRot + vel.v * cosRot;
+            
+            // 4. Update
+            p.x += worldU * 1.5; 
+            p.y += worldV * 1.5;
+            
+            // 5. Loop
+            if(p.x > 10 || Math.abs(p.y) > 6) {
+                p.x = -10;
+                p.y = (Math.random() - 0.5) * 7;
             }
-            requestAnimationFrame(update);
-        }
 
-        function splat(x, y, dx, dy, color) {
-            splatProgram.bind();
-            gl.uniform1i(splatProgram.uniforms.uTarget, velocity.read.attach(0));
-            gl.uniform1f(splatProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-            gl.uniform2f(splatProgram.uniforms.point, x / canvas.width, 1.0 - y / canvas.height);
-            gl.uniform3f(splatProgram.uniforms.color, dx, -dy, 1.0);
-            gl.uniform1f(splatProgram.uniforms.radius, config.SPLAT_RADIUS);
-            blit(velocity.write.fbo);
-            velocity.swap();
-
-            gl.uniform1i(splatProgram.uniforms.uTarget, density.read.attach(0));
-            gl.uniform3f(splatProgram.uniforms.color, color[0] * 0.3, color[1] * 0.3, color[2] * 0.3);
-            blit(density.write.fbo);
-            density.swap();
-        }
-
-        function resizeCanvas() {
-            if(!canvas) return;
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
+            posArr[i*3] = p.x;
+            posArr[i*3+1] = p.y;
+            posArr[i*3+2] = 0;
         }
         
-        // ... Helpers (createFBO, createProgram, blit) omitted for brevity but assumed standard WebGL boilerplate
-        // Minimal implementations for this context:
-        function createFBO(texId, w, h, format, filter, type) {
-            // Simplified texture creation
-            gl.activeTexture(gl.TEXTURE0 + texId);
-            const texture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texImage2D(gl.TEXTURE_2D, 0, format, w, h, 0, format, type, null);
-            const fbo = gl.createFramebuffer();
-            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-            return { fbo, texture, attach: (id) => { gl.activeTexture(gl.TEXTURE0 + id); gl.bindTexture(gl.TEXTURE_2D, texture); return id; } };
-        }
-        function createDoubleFBO(texId, w, h, format, filter, type) {
-            const fbo1 = createFBO(texId, w, h, format, filter, type);
-            const fbo2 = createFBO(texId + 1, w, h, format, filter, type);
-            return {
-                read: fbo1, write: fbo2,
-                swap: () => { const temp = fbo1; fbo1 = fbo2; fbo2 = temp; },
-                texelSizeX: 1.0/w, texelSizeY: 1.0/h
-            };
-        }
-        function createProgram(name, fragmentSource, vertexSource = baseVertexShader) {
-            const program = gl.createProgram();
-            const vertex = createShader(vertexSource, gl.VERTEX_SHADER);
-            const fragment = createShader(fragmentSource, gl.FRAGMENT_SHADER);
-            gl.attachShader(program, vertex);
-            gl.attachShader(program, fragment);
-            gl.linkProgram(program);
-            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) console.error(gl.getProgramInfoLog(program));
-            
-            const uniforms = {};
-            const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-            for (let i = 0; i < count; i++) {
-                const uniformName = gl.getActiveUniform(program, i).name;
-                uniforms[uniformName] = gl.getUniformLocation(program, uniformName);
-            }
-            return { program, uniforms, bind: () => gl.useProgram(program) };
-        }
-        function createShader(source, type) {
-            const shader = gl.createShader(type);
-            gl.shaderSource(shader, source);
-            gl.compileShader(shader);
-            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(shader));
-            return shader;
-        }
-        function blit(destination) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, destination);
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        }
-        function isMobile() { return /Mobi|Android/i.test(navigator.userAgent); }
-
-        return { init: init };
-    })();
+        flowField.geometry.attributes.position.needsUpdate = true;
+        renderer.render(scene, camera);
+    }
+    animate();
 
 
-    // --- 2. AIRFOIL SIMULATION (THREE.JS) ---
-    const AirfoilSim = (function() {
-        let scene, camera, renderer, airfoil, flowField;
-        let alpha = 0;
-        const b = 0.25, max_thickness = 0.12, e = max_thickness/1.3, beta = 0;
-        const a = b*(1+e)/Math.cos(beta), mu_x = -b*e, mu_y = a*beta;
-        
-        const api = { 
-            init: init, 
-            getCamera: function() { return camera; },
-            getAirfoil: function() { return airfoil; },
-            getFlow: function() { return flowField; },
-            setAlpha: function(val) { alpha = val; }
-        };
-
-        function init() {
-            const container = document.getElementById('airfoil-canvas');
-            scene = new THREE.Scene();
-            scene.background = null; 
-            
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
-            camera.position.z = 7.0;
-            
-            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
-            
-            const shape = new THREE.Shape();
-            const steps = 100;
-            for(let i=0; i<=steps; i++) {
-                const t = (i/steps)*Math.PI*2;
-                const zx = mu_x + a*Math.cos(t), zy = mu_y + a*Math.sin(t);
-                const d = zx*zx + zy*zy;
-                const x = zx*(1+(b*b)/d), y = zy*(1-(b*b)/d);
-                if(i===0) shape.moveTo(x,y); else shape.lineTo(x,y);
-            }
-            const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.2, bevelEnabled: false });
-            geo.center();
-            
-            airfoil = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x8C1D40, wireframe: true, opacity: 0.5, transparent: true }));
-            const core = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x000000 }));
-            core.scale.set(0.99,0.99,1);
-            airfoil.add(core);
-            scene.add(airfoil);
-            
-            const count = 60, segs = 60;
-            const pos = [];
-            const pData = [];
-            for(let i=0; i<count; i++) {
-                let yn = (i/(count-1))*2-1;
-                let y = Math.sign(yn)*Math.pow(Math.abs(yn), 1.2)*3.5;
-                for(let j=0; j<segs; j++) {
-                    let x = (j/segs)*20 - 10;
-                    pos.push(x,y,0);
-                    pData.push({x:x, y:y, speed: 0.05});
-                }
-            }
-            const pGeo = new THREE.BufferGeometry();
-            pGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-            pGeo.userData = { data: pData };
-            flowField = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0xFFC627, size: 0.035 }));
-            scene.add(flowField);
-            
-            animate();
-        }
-
-        function getVel(px, py, ang) {
-            const c = Math.cos(ang), s = Math.sin(ang);
-            const zx = px*c + py*s, zy = -px*s + py*c;
-            
-            const hx = zx/2, hy = zy/2;
-            const sx = (hx*hx - hy*hy) - b*b, sy = 2*hx*hy;
-            const r = Math.sqrt(Math.sqrt(sx*sx + sy*sy));
-            const phi = Math.atan2(sy, sx)/2;
-            const rx = r*Math.cos(phi), ry = r*Math.sin(phi);
-            let Zx, Zy;
-            
-            if ( (hx+rx)**2 + (hy+ry)**2 > (hx-rx)**2 + (hy-ry)**2 ) { Zx=hx+rx; Zy=hy+ry; }
-            else { Zx=hx-rx; Zy=hy-ry; }
-            
-            const Zcx = Zx - mu_x, Zcy = Zy - mu_y;
-            const cm = Math.cos(-ang), sm = Math.sin(-ang);
-            const Zrx = Zcx*cm - Zcy*sm, Zry = Zcx*sm + Zcy*cm;
-            
-            const Zr2 = Zrx*Zrx - Zry*Zry, Zr2i = 2*Zrx*Zry;
-            const m4 = Zr2*Zr2 + Zr2i*Zr2i;
-            if(m4 < 1e-5) return {u:0, v:0};
-            
-            const V = 0.08;
-            let Wx = V*(1 - a*a * Zr2/m4), Wy = V*(0 - a*a * (-Zr2i)/m4);
-            
-            const Gamma = 4*Math.PI*V*a*Math.sin(ang);
-            const m2 = Zrx*Zrx + Zry*Zry;
-            const G = Gamma / (2*Math.PI*m2);
-            Wx += G*(-Zry); Wy += G*(Zrx);
-            
-            const Vzx = Wx*cm - Wy*sm, Vzy = Wx*sm + Wy*cm;
-            
-            const Z2x = Zx*Zx - Zy*Zy, Z2y = 2*Zx*Zy;
-            const mZ4 = Z2x*Z2x + Z2y*Z2y;
-            const dzx = 1 - b*b * Z2x/mZ4, dzy = 0 - b*b * (-Z2y)/mZ4;
-            const den = dzx*dzx + dzy*dzy;
-            if(den < 1e-4) return {u:V, v:0};
-            
-            const ux = (Vzx*dzx + Vzy*dzy)/den, uy = (Vzy*dzx - Vzx*dzy)/den; 
-            return { u: ux*c - (-uy)*(-s), v: ux*(-s) + (-uy)*c };
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            if(window.currentSim !== 'airfoil' && !window.isTransitioning) return;
-
-            airfoil.rotation.z = THREE.MathUtils.lerp(airfoil.rotation.z, -alpha, 0.1);
-            const pos = flowField.geometry.attributes.position.array;
-            const data = flowField.geometry.userData.data;
-            
-            for(let i=0; i<data.length; i++) {
-                let p = data[i];
-                let v = getVel(p.x, p.y, alpha);
-                if(isNaN(v.u)) v = {u:0.08, v:0};
-                p.x += v.u*1.5; p.y += v.v*1.5;
-                if(p.x > 10 || Math.abs(p.y)>6) { p.x=-10; p.y=(Math.random()-0.5)*7; }
-                pos[i*3] = p.x; pos[i*3+1] = p.y;
-            }
-            flowField.geometry.attributes.position.needsUpdate = true;
-            renderer.render(scene, camera);
-        }
-        
-        window.addEventListener('resize', () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth/window.innerHeight;
-            camera.updateProjectionMatrix();
-        });
-        
-        return api;
-    })();
-
-    // --- 3. CONTROLLER ---
-    window.currentSim = 'airfoil';
-    window.isTransitioning = false;
-
-    FluidSim.init();
-    AirfoilSim.init();
-
-    window.switchSim = function(mode) {
-        if(mode === window.currentSim || window.isTransitioning) return;
-        window.isTransitioning = true;
-        window.currentSim = mode;
-        
-        document.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-'+mode).classList.add('active');
-        
-        const tl = gsap.timeline({ onComplete: () => { window.isTransitioning = false; } });
-        const cam = AirfoilSim.getCamera();
-        const fluidCanvas = document.getElementById('fluid-canvas');
-        const airfoilCanvas = document.getElementById('airfoil-canvas');
-        const airfoilObj = AirfoilSim.getAirfoil();
-        const flowObj = AirfoilSim.getFlow();
-
-        if(mode === 'fluid') {
-            tl.to(cam.position, { z: 20, duration: 0.8, ease: "power2.in" });
-            tl.to([airfoilObj.material, flowObj.material], { opacity: 0, duration: 0.5 });
-            tl.to(fluidCanvas, { opacity: 1, duration: 0.5 }, "<");
-        } else {
-            tl.to(fluidCanvas, { opacity: 0, duration: 0.5 });
-            tl.to(airfoilObj.material, { opacity: 0.5, duration: 0.5 }, "<");
-            tl.to(flowObj.material, { opacity: 1, duration: 0.5 }, "<");
-            tl.to(cam.position, { z: 7, duration: 1.0, ease: "power2.out" });
-        }
-    };
-
+    // --- 5. SCROLL TRIGGER ---
     gsap.registerPlugin(ScrollTrigger);
+
     ScrollTrigger.create({
-        trigger: "#page-content", start: "top top", end: "bottom bottom", scrub: 0.1,
-        onUpdate: (self) => { AirfoilSim.setAlpha(self.progress * 0.31); }
+        trigger: "#page-content",
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 0.1,
+        onUpdate: (self) => {
+            // Pitch from 0 to 18 degrees (0.31 rad)
+            alpha = self.progress * 0.31;
+        }
+    });
+    
+    // Highlight 1 (Airfoil)
+    gsap.to("#section-highlight .research-highlight", {
+        scrollTrigger: {
+            trigger: "#section-highlight",
+            start: "top 70%",
+            end: "top 40%",
+            scrub: 1
+        },
+        y: 0,
+        opacity: 1
     });
 
-    gsap.utils.toArray(".research-highlight").forEach(el => {
-        gsap.to(el, {
-            scrollTrigger: { trigger: el, start: "top 70%", end: "top 40%", scrub: 1 },
-            y: 0, opacity: 1
-        });
+    // Highlight 2 (GPU - NEW)
+    gsap.to("#section-gpu .research-highlight", {
+        scrollTrigger: {
+            trigger: "#section-gpu",
+            start: "top 70%",
+            end: "top 40%",
+            scrub: 1
+        },
+        y: 0,
+        opacity: 1
+    });
+
+    window.addEventListener('resize', () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
     });
 
 })();
