@@ -221,10 +221,9 @@ title: Home
             <!-- Ratio 1 -->
             <div class="ratio-card">
                 <div class="ratio-img-placeholder">
-                    <!-- Ensure you upload ratio1.png to assets/images/ -->
                     <img src="assets/images/ratio1.png" onerror="this.src='https://via.placeholder.com/400x300?text=Ratio+1+(Blunt)'" alt="Ratio 1 Airfoil">
                 </div>
-                <div class="ratio-title">Ratio 1:12 (Blunt)</div>
+                <div class="ratio-title">Ratio 1 (Most Rounded)</div>
                 <div class="ratio-desc">
                     <strong>Zero Initial Lift.</strong> Significant separation bubble and no Kutta condition establishment.
                 </div>
@@ -235,7 +234,7 @@ title: Home
                 <div class="ratio-img-placeholder">
                     <img src="assets/images/ratio4.png" onerror="this.src='https://via.placeholder.com/400x300?text=Ratio+4+(Rounded)'" alt="Ratio 4 Airfoil">
                 </div>
-                <div class="ratio-title">Ratio 4:12 (Rounded)</div>
+                <div class="ratio-title">Ratio 4 (Less Rounded)</div>
                 <div class="ratio-desc">
                     <strong>Delayed Circulation.</strong> Stagnation point must traverse the rounded edge before lift builds.
                 </div>
@@ -246,15 +245,15 @@ title: Home
                 <div class="ratio-img-placeholder">
                     <img src="assets/images/ratio100.png" onerror="this.src='https://via.placeholder.com/400x300?text=Ratio+100+(Sharp)'" alt="Ratio 100 Airfoil">
                 </div>
-                <div class="ratio-title">Ratio 100:12 (Sharp)</div>
+                <div class="ratio-title">Ratio 100 (Sharpest)</div>
                 <div class="ratio-desc">
-                    <strong>Wagner Effect.</strong> Instantaneous 50% lift generation due to sharp TE singularity.
+                    <strong>Wagner-Like Effect.</strong> Instantaneous 50% lift generation due to sharp TE singularity.
                 </div>
             </div>
         </div>
 
         <div style="text-align: center; margin-top: 4rem;">
-            <a href="research.html" class="btn-research">
+            <a href="https://saumya2402.github.io/LANCA-lab/#research" class="btn-research">
                 Learn More <i class="fas fa-arrow-right" style="margin-left: 10px;"></i>
             </a>
         </div>
@@ -272,8 +271,10 @@ title: Home
     scene.fog = new THREE.FogExp2(0x050505, 0.05);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    // Adjusted camera for better view of flow field
+    camera.position.z = 7.0; 
     
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     const container = document.getElementById('webgl-container');
     if(container) {
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -281,41 +282,36 @@ title: Home
         container.appendChild(renderer.domElement);
     }
 
-    // --- 2. GEOMETRY: NACA 0012 ---
-    // Accurate NACA 4-digit thickness function
-    function naca0012_thick(x) {
-        if(x < 0 || x > 1) return 0;
-        return 0.6 * (0.2969 * Math.sqrt(x) - 0.1260 * x - 0.3516 * x*x + 0.2843 * x*x*x - 0.1015 * x*x*x*x);
-    }
-
-    // Derivative for slope calculation (dy/dx)
-    // Used for flow deflection physics
-    function naca0012_slope(x) {
-        if(x <= 0.001) return 10; // Avoid infinity, cap slope at nose
-        if(x > 1) return 0;
-        // dy/dx of the thickness function
-        return 0.6 * (0.14845/Math.sqrt(x) - 0.1260 - 0.7032*x + 0.8529*x*x - 0.406*x*x*x);
-    }
+    // --- 2. JOUKOWSKI AIRFOIL (Static Mesh) ---
+    
+    const b = 0.25; // Scale
+    const max_thickness = 0.12; 
+    const e = max_thickness / 1.3; 
+    const beta = 0; 
+    
+    const a = b * (1 + e) / Math.cos(beta);
+    const mu_x = -b * e; 
+    const mu_y = a * beta; 
 
     const airfoilShape = new THREE.Shape();
-    const steps = 150; // Higher res for smooth nose
+    const steps = 120;
     
     for(let i = 0; i <= steps; i++) {
-        const x = i / steps;
-        const y = naca0012_thick(x);
-        if(i === 0) airfoilShape.moveTo(x - 0.5, y);
-        else airfoilShape.lineTo(x - 0.5, y);
-    }
-    for(let i = steps; i >= 0; i--) {
-        const x = i / steps;
-        const y = -naca0012_thick(x);
-        airfoilShape.lineTo(x - 0.5, y);
+        const theta = (i / steps) * Math.PI * 2;
+        const zeta_x = mu_x + a * Math.cos(theta);
+        const zeta_y = mu_y + a * Math.sin(theta);
+        
+        const denom = zeta_x*zeta_x + zeta_y*zeta_y;
+        const z_x = zeta_x * (1 + (b*b)/denom);
+        const z_y = zeta_y * (1 - (b*b)/denom);
+        
+        if(i === 0) airfoilShape.moveTo(z_x, z_y);
+        else airfoilShape.lineTo(z_x, z_y);
     }
 
-    const geometry = new THREE.ExtrudeGeometry(airfoilShape, { depth: 0.4, bevelEnabled: false });
-    geometry.center();
+    const geometry = new THREE.ExtrudeGeometry(airfoilShape, { depth: 0.2, bevelEnabled: false });
+    geometry.center(); 
 
-    // Wireframe Material
     const material = new THREE.MeshBasicMaterial({ 
         color: 0x8C1D40, 
         wireframe: true,
@@ -323,34 +319,29 @@ title: Home
         opacity: 0.3 
     });
     const airfoil = new THREE.Mesh(geometry, material);
-    
-    // Solid Core (Black)
     const core = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 0x050505 }));
     core.scale.set(0.99, 0.99, 1);
     airfoil.add(core);
-    
     scene.add(airfoil);
 
-    // --- 3. STREAMLINES (Potential Flow Logic) ---
-    const lineCount = 50;
-    const particlesPerLine = 80;
+    // --- 3. STREAMLINES PARTICLES ---
+    const lineCount = 60;
+    const particlesPerLine = 60;
     const particleGeo = new THREE.BufferGeometry();
     const positions = [];
     const pState = []; 
 
     for(let i = 0; i < lineCount; i++) {
-        // Distribute lines: Cluster near center for detail, spread far for context
-        let yNorm = (i / (lineCount-1)) * 2 - 1; // -1 to 1
-        const yStart = Math.sign(yNorm) * Math.pow(Math.abs(yNorm), 1.3) * 2.5;
+        let yNorm = (i / (lineCount-1)) * 2 - 1; 
+        const yStart = Math.sign(yNorm) * Math.pow(Math.abs(yNorm), 1.1) * 4.0;
         
         for(let j = 0; j < particlesPerLine; j++) {
-            // Start further upstream to allow flow to develop
-            const xStart = (j / particlesPerLine) * 16 - 8;
+            const xStart = (j / particlesPerLine) * 20 - 10;
             positions.push(xStart, yStart, 0);
             pState.push({
                 x: xStart,
-                yInit: yStart, // The "Lane" ID
-                baseSpeed: 0.05 + Math.random() * 0.01,
+                y: yStart,
+                speed: 0.05 
             });
         }
     }
@@ -358,96 +349,173 @@ title: Home
     particleGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     const flowField = new THREE.Points(particleGeo, new THREE.PointsMaterial({
         color: 0xFFC627,
-        size: 0.045,
+        size: 0.035,
         transparent: true,
-        opacity: 0.7
+        opacity: 0.6
     }));
     scene.add(flowField);
 
 
-    // --- 4. ANIMATION LOOP ---
-    let aoa = 0; 
-    camera.position.z = 4.5;
+    // --- 4. EXACT POTENTIAL FLOW PHYSICS ---
+    
+    let alpha = 0; // Angle of attack
+    const V_inf = 0.08; 
+
+    // Calculate Velocity at World Point (px, py) given Airfoil at angle alpha
+    function getExactVelocity(px, py, alphaVal) {
+        
+        // 1. Transform World Point (P) into Airfoil Local Frame (L)
+        // Airfoil is rotated by -alpha. 
+        // Local Frame is rotated +alpha relative to World.
+        const cosA = Math.cos(alphaVal);
+        const sinA = Math.sin(alphaVal);
+        
+        // z_local = P * e^(i alpha)
+        const z_local_x = px * cosA + py * sinA;
+        const z_local_y = -px * sinA + py * cosA;
+
+        // 2. Inverse Joukowski: Find zeta (circle plane) from z_local
+        const halfZ_x = z_local_x / 2;
+        const halfZ_y = z_local_y / 2;
+        
+        const sqTerm_x = (halfZ_x*halfZ_x - halfZ_y*halfZ_y) - b*b;
+        const sqTerm_y = 2 * halfZ_x * halfZ_y;
+        
+        const r_val = Math.sqrt(sqTerm_x*sqTerm_x + sqTerm_y*sqTerm_y);
+        const r_sqrt = Math.sqrt(r_val);
+        const phi = Math.atan2(sqTerm_y, sqTerm_x);
+        
+        const root_x = r_sqrt * Math.cos(phi/2);
+        const root_y = r_sqrt * Math.sin(phi/2);
+        
+        const zeta1_x = halfZ_x + root_x;
+        const zeta1_y = halfZ_y + root_y;
+        const mag1 = zeta1_x*zeta1_x + zeta1_y*zeta1_y;
+        
+        const zeta2_x = halfZ_x - root_x;
+        const zeta2_y = halfZ_y - root_y;
+        const mag2 = zeta2_x*zeta2_x + zeta2_y*zeta2_y;
+        
+        let zeta_x, zeta_y;
+        if (mag1 > mag2) { zeta_x = zeta1_x; zeta_y = zeta1_y; }
+        else { zeta_x = zeta2_x; zeta_y = zeta2_y; }
+
+        // Shift to cylinder center
+        const Z_x = zeta_x - mu_x;
+        const Z_y = zeta_y - mu_y;
+        
+        // Rotate inputs by -alpha to align with horizontal cylinder formula
+        // This is key: The cylinder formula assumes flow is at 0 degrees relative to cylinder.
+        // In Local Frame, flow is coming at angle `alpha`.
+        // So we rotate Z by -alpha to align flow to x-axis for calculation.
+        
+        const Zr_x = Z_x * cosA + Z_y * sinA; // Actually rotate by -(-alpha)? No, rotate by -alpha
+        // Wait. In Local Frame, flow is at angle alpha.
+        // We want to use standard cylinder formula W = V(Z + R^2/Z).
+        // This assumes V is along X.
+        // So we rotate our coordinate system so V aligns with X.
+        // If V is at alpha, we rotate coordinates by -alpha.
+        
+        // Correct rotation for input to standard cylinder formula:
+        const Zr_rot_x = Z_x * Math.cos(-alphaVal) - Z_y * Math.sin(-alphaVal);
+        const Zr_rot_y = Z_x * Math.sin(-alphaVal) + Z_y * Math.cos(-alphaVal);
+        
+        // 3. Cylinder Flow Calculation
+        const Zr2 = Zr_rot_x*Zr_rot_x - Zr_rot_y*Zr_rot_y;
+        const Zr2_imag = 2*Zr_rot_x*Zr_rot_y;
+        const modZr4 = Zr2*Zr2 + Zr2_imag*Zr2_imag;
+        
+        if(modZr4 < 0.00001) return {u: 0, v: 0};
+
+        const invZr2_x = Zr2 / modZr4;
+        const invZr2_y = -Zr2_imag / modZr4;
+        
+        // Standard Cylinder Velocity (u - iv)
+        let dWdZ_x = V_inf * (1 - a*a * invZr2_x);
+        let dWdZ_y = V_inf * (0 - a*a * invZr2_y);
+        
+        // Circulation Term (Kutta)
+        const Gamma = 4 * Math.PI * V_inf * a * Math.sin(alphaVal + beta);
+        
+        const modZr2 = Zr_rot_x*Zr_rot_x + Zr_rot_y*Zr_rot_y;
+        const factor = Gamma / (2 * Math.PI * modZr2);
+        
+        dWdZ_x += factor * (-Zr_rot_y); 
+        dWdZ_y += factor * (-Zr_rot_x); 
+        
+        // Rotate Velocity BACK to Local Frame
+        // Multiply by e^(-i alpha) because dW/dz = dW/dZ * dZ/dz
+        // Coordinate rotation Z_rot = Z * e^(-ia) -> dZ_rot/dZ = e^(-ia)
+        // Complex velocity W' = W'_cyl * e^(-ia)
+        
+        const cosMa = Math.cos(-alphaVal);
+        const sinMa = Math.sin(-alphaVal);
+        
+        const V_local_x = dWdZ_x * cosMa - dWdZ_y * sinMa;
+        const V_local_y = dWdZ_x * sinMa + dWdZ_y * cosMa;
+        
+        // 4. Map to Physical Plane (dZ/dz)
+        const zetaSq_x = zeta_x*zeta_x - zeta_y*zeta_y;
+        const zetaSq_y = 2*zeta_x*zeta_y;
+        const modZeta4 = zetaSq_x*zetaSq_x + zetaSq_y*zetaSq_y;
+        
+        const invZetaSq_x = zetaSq_x / modZeta4; 
+        const invZetaSq_y = -zetaSq_y / modZeta4; 
+        
+        const dZdzeta_x = 1 - b*b * invZetaSq_x;
+        const dZdzeta_y = 0 - b*b * invZetaSq_y;
+        
+        const denom_map = dZdzeta_x*dZdzeta_x + dZdzeta_y*dZdzeta_y;
+        
+        if(denom_map < 0.001) return {u: V_inf, v: 0};
+
+        // V_physical = V_local / (dz/dzeta)
+        // Note: V_local is already complex velocity (u - iv)
+        const u_minus_iv_x = (V_local_x * dZdzeta_x + V_local_y * dZdzeta_y) / denom_map;
+        const u_minus_iv_y = (V_local_y * dZdzeta_x - V_local_x * dZdzeta_y) / denom_map;
+        
+        // 5. Result is already in World Frame?
+        // Wait. We mapped from z_local (Airfoil Frame). 
+        // So this velocity is (u_local, v_local).
+        // To get World Velocity, we must rotate (u, v) vector by -alpha.
+        
+        const u_local = u_minus_iv_x;
+        const v_local = -u_minus_iv_y;
+        
+        const u_world = u_local * cosMa - v_local * sinMa; // Rotate by -alpha
+        const v_world = u_local * sinMa + v_local * cosMa;
+        
+        return { u: u_world, v: v_world };
+    }
 
     function animate() {
         requestAnimationFrame(animate);
 
-        // Pitch Airfoil
-        airfoil.rotation.z = THREE.MathUtils.lerp(airfoil.rotation.z, -aoa, 0.1);
+        // Pitch Mesh
+        airfoil.rotation.z = THREE.MathUtils.lerp(airfoil.rotation.z, -alpha, 0.1);
 
         const posArr = flowField.geometry.attributes.position.array;
         
         for(let i = 0; i < pState.length; i++) {
             const p = pState[i];
             
-            // 1. Move Particle in "Wind Tunnel Frame" (Pure X motion)
-            p.x += p.baseSpeed;
-            if(p.x > 8) p.x = -8;
-
-            // 2. ANALYTICAL FLOW SOLVER (Approximate)
-            // We want to calculate the Y-deflection at the current X
+            // Calculate Exact Velocity in World Coordinates
+            let vel = getExactVelocity(p.x, p.y, alpha);
             
-            // Relative coordinates to LE (Leading Edge at -0.5)
-            const xRel = p.x - (-0.5); 
-            
-            let yDeflection = 0;
-            let xDeflection = 0;
+            if(isNaN(vel.u) || isNaN(vel.v)) vel = {u: V_inf, v: 0};
 
-            // A. NOSE SINGULARITY (Source Flow)
-            // If near the nose (xRel ~ 0), push hard radially
-            const rSq = xRel*xRel + p.yInit*p.yInit;
-            if (rSq < 1.0) {
-                // Source strength decays with distance
-                const strength = 0.08 / (rSq + 0.1);
-                // Push vector (x, y)
-                xDeflection -= strength * xRel; // Slow down approaching nose
-                yDeflection += strength * p.yInit; // Push Up/Down
+            // Update Position
+            p.x += vel.u * 1.5; 
+            p.y += vel.v * 1.5;
+            
+            // Reset Logic
+            if(p.x > 10 || Math.abs(p.y) > 6) {
+                p.x = -10;
+                p.y = (Math.random() - 0.5) * 7;
             }
 
-            // B. THICKNESS DISPLACEMENT (Body effect)
-            // If we are downstream of nose (xRel > 0)
-            if (xRel > 0 && xRel < 1.2) { // Airfoil chord is length 1
-                 // Get slope of airfoil at this X
-                 // Clamp X to 0-1 for lookup
-                 const xClamped = Math.max(0, Math.min(1, xRel));
-                 const halfThick = naca0012_thick(xClamped);
-                 
-                 // If particle is "blocked" by thickness or near it
-                 // We push it out to at least thickness + boundary layer
-                 const limit = halfThick + 0.05;
-                 
-                 // Smooth blend: Only affect particles near the centerline
-                 if(Math.abs(p.yInit) < 0.8) {
-                     // Direction to push (Up or Down based on lane)
-                     const sign = Math.sign(p.yInit);
-                     
-                     // Current 'undisturbed' distance from centerline
-                     const currentDist = Math.abs(p.yInit + yDeflection);
-                     
-                     if (currentDist < limit) {
-                         // Push it out to the limit
-                         yDeflection += (limit - currentDist) * sign;
-                     }
-                 }
-            }
-
-            // C. ANGLE OF ATTACK ROTATION
-            // We rotate the entire particle field AROUND the pivot (0,0)
-            // to match the airfoil pitching.
-            // Formula: 
-            // x' = x*cos(a) - y*sin(a)
-            // y' = x*sin(a) + y*cos(a)
-            
-            // Note: We use -aoa because in Three.js +Z rotation is CCW
-            
-            const currentX = p.x + xDeflection;
-            const currentY = p.yInit + yDeflection;
-
-            const rotX = currentX * Math.cos(-aoa) - currentY * Math.sin(-aoa);
-            const rotY = currentX * Math.sin(-aoa) + currentY * Math.cos(-aoa);
-
-            posArr[i*3] = rotX;
-            posArr[i*3+1] = rotY;
+            posArr[i*3] = p.x;
+            posArr[i*3+1] = p.y;
             posArr[i*3+2] = 0;
         }
         
@@ -466,8 +534,7 @@ title: Home
         end: "bottom bottom",
         scrub: 0.1,
         onUpdate: (self) => {
-            // Pitch from 0 to 18 degrees (approx 0.3 rads)
-            aoa = self.progress * 0.3;
+            alpha = self.progress * 0.31; // Pitch 0 to 18 deg
         }
     });
     
