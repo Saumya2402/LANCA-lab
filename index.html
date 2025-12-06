@@ -9,49 +9,230 @@ title: Home
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <style>
-    body { margin: 0; overflow-x: hidden; background-color: #050505; font-family: 'Roboto', sans-serif; }
-    #sim-container { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1; }
-    #airfoil-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; transition: opacity 1s ease; }
-    #fluid-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0; transition: opacity 1s ease; }
-    
-    /* UI */
-    #sim-ui { position: fixed; top: 100px; right: 40px; z-index: 100; display: flex; flex-direction: column; gap: 10px; }
-    .sim-btn { background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-family: 'Oswald', sans-serif; text-transform: uppercase; transition: all 0.3s ease; text-align: right; width: 180px; }
-    .sim-btn.active { border-right: 4px solid #FFC627; background: rgba(140, 29, 64, 0.8); }
+    /* --- CORE LAYOUT --- */
+    body {
+        margin: 0;
+        overflow-x: hidden;
+        background-color: #050505;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Container for BOTH simulations */
+    #sim-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: -1;
+    }
+
+    /* Canvas for Airfoil (Three.js) */
+    #airfoil-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        transition: opacity 1s ease;
+    }
+
+    /* Canvas for Fluid (WebGL) */
+    #fluid-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0; /* Behind initially */
+        opacity: 0; /* Hidden initially */
+        transition: opacity 1s ease;
+    }
+
+    /* --- UI CONTROLS --- */
+    #sim-ui {
+        position: fixed;
+        top: 100px;
+        right: 40px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .sim-btn {
+        background: rgba(20, 20, 20, 0.6);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: white;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 4px;
+        font-family: 'Oswald', sans-serif;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+        text-align: right;
+        width: 180px;
+    }
+
+    .sim-btn.active {
+        border-right: 4px solid #FFC627;
+        background: rgba(140, 29, 64, 0.8);
+    }
+
     .sim-btn:hover { background: rgba(140, 29, 64, 0.4); }
 
-    /* SECTIONS */
-    .scroll-section { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 0 8%; color: white; z-index: 2; pointer-events: none; }
-    .lab-title-block { text-align: left; max-width: 1100px; pointer-events: auto; margin-top: -5vh; }
-    .lab-title-block h1 { font-family: 'Oswald', sans-serif; font-size: 6.5rem; line-height: 0.9; margin-bottom: 2rem; color: white; text-transform: uppercase; letter-spacing: -2px; text-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .lab-title-block p { font-size: 1.4rem; color: #FFC627; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; border-left: 8px solid #8C1D40; padding-left: 25px; margin-left: 5px; }
+    /* --- SECTIONS --- */
+    .scroll-section {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 8%;
+        color: white;
+        z-index: 2;
+        pointer-events: none; 
+    }
 
-    /* HIGHLIGHT BOX */
-    .research-highlight { background: rgba(20, 20, 20, 0.2); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 6px solid #8C1D40; padding: 3rem; max-width: 600px; pointer-events: auto; opacity: 0; transform: translateY(50px); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); margin-bottom: 15vh; }
-    .research-highlight h2 { font-size: 2.2rem; margin: 0 0 1rem 0; font-family: 'Oswald', sans-serif; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+    /* --- HERO TITLE --- */
+    .lab-title-block {
+        text-align: left;
+        max-width: 1100px;
+        pointer-events: auto;
+        margin-top: -5vh;
+    }
+
+    .lab-title-block h1 {
+        font-family: 'Oswald', sans-serif;
+        font-size: 6.5rem;
+        line-height: 0.9;
+        margin-bottom: 2rem;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: -2px;
+        text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .lab-title-block p {
+        font-size: 1.4rem;
+        color: #FFC627;
+        font-weight: 400;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        border-left: 8px solid #8C1D40;
+        padding-left: 25px;
+        margin-left: 5px;
+    }
+
+    /* --- HIGHLIGHT BOX --- */
+    .research-highlight {
+        background: rgba(20, 20, 20, 0.2); /* Glassy */
+        backdrop-filter: blur(8px);        
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1); 
+        border-left: 6px solid #8C1D40;        
+        padding: 3rem;
+        max-width: 600px;
+        pointer-events: auto;
+        opacity: 0;
+        transform: translateY(50px);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); 
+        margin-bottom: 15vh;
+    }
+
+    .research-highlight h2 {
+        font-size: 2.2rem;
+        margin: 0 0 1rem 0;
+        font-family: 'Oswald', sans-serif;
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+    
     .research-highlight p { text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
-    .gpu-tag { display: inline-block; background: linear-gradient(45deg, #8C1D40, #FFC627); color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; letter-spacing: 1px; }
 
-    /* GEOMETRY SECTION */
-    #geometry-section { background-color: #f4f4f4; color: #191919; padding: 6rem 8%; position: relative; z-index: 3; }
-    .section-header h3 { font-size: 2.5rem; color: #8C1D40; margin-bottom: 1rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; }
-    .ratio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 3rem; margin-bottom: 3rem; }
-    .ratio-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; transition: transform 0.3s ease; }
+    .gpu-tag {
+        display: inline-block;
+        background: linear-gradient(45deg, #8C1D40, #FFC627);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    /* --- GEOMETRY SECTION --- */
+    #geometry-section {
+        background-color: #f4f4f4;
+        color: #191919;
+        padding: 6rem 8%;
+        position: relative;
+        z-index: 3;
+    }
+
+    .section-header h3 {
+        font-size: 2.5rem;
+        color: #8C1D40;
+        margin-bottom: 1rem;
+        font-family: 'Oswald', sans-serif;
+        text-transform: uppercase;
+    }
+
+    .ratio-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        margin-top: 3rem;
+        margin-bottom: 3rem;
+    }
+
+    .ratio-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
     .ratio-card:hover { transform: translateY(-5px); }
-    .ratio-img-placeholder { width: 100%; height: 200px; background-color: white; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; overflow: hidden; border: 1px solid #eee; }
+
+    .ratio-img-placeholder {
+        width: 100%; height: 200px;
+        background-color: white;
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 15px; overflow: hidden; border: 1px solid #eee;
+    }
     .ratio-img-placeholder img { width: 100%; height: 100%; object-fit: contain; }
     .ratio-title { font-weight: 700; color: #8C1D40; font-size: 1.2rem; margin-bottom: 5px; }
     .ratio-desc { font-size: 0.9rem; color: #555; line-height: 1.5; }
-    .btn-research { display: inline-block; padding: 18px 40px; background-color: #8C1D40; color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; border-radius: 2px; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(140, 29, 64, 0.3); }
-    .btn-research:hover { background-color: #6d1632; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(140, 29, 64, 0.4); }
+
+    .btn-research {
+        display: inline-block; padding: 18px 40px;
+        background-color: #8C1D40; color: white;
+        font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+        text-decoration: none; border-radius: 2px;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(140, 29, 64, 0.3);
+    }
+    .btn-research:hover {
+        background-color: #6d1632;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(140, 29, 64, 0.4);
+    }
+
     @media (max-width: 768px) { .lab-title-block h1 { font-size: 3.5rem; } }
 </style>
 
+<!-- SIMULATION CONTAINER -->
 <div id="sim-container">
     <canvas id="fluid-canvas"></canvas>
-    <div id="airfoil-canvas"></div>
+    <div id="airfoil-canvas"></div> <!-- ThreeJS container -->
 </div>
 
+<!-- TOGGLE UI -->
 <div id="sim-ui">
     <div class="sim-btn active" id="btn-airfoil" onclick="switchSim('airfoil')">
         Airfoil Physics
@@ -63,7 +244,10 @@ title: Home
     </div>
 </div>
 
+<!-- SCROLLABLE CONTENT -->
 <div id="page-content">
+
+    <!-- SECTION 1: HERO -->
     <section class="scroll-section" id="section-hero">
         <div class="lab-title-block">
             <h1>Laboratory for<br>Analytical &<br>Computational Analysis</h1>
@@ -75,30 +259,46 @@ title: Home
         </div>
     </section>
 
+    <!-- SECTION 2: AIRFOIL RESEARCH -->
     <section class="scroll-section" id="section-highlight">
         <div class="research-highlight">
-            <div style="text-transform: uppercase; color: #FFC627; font-weight: 700; margin-bottom: 10px; font-size: 0.9rem; letter-spacing: 1px;">Fundamental Research</div>
+            <div style="text-transform: uppercase; color: #FFC627; font-weight: 700; margin-bottom: 10px; font-size: 0.9rem; letter-spacing: 1px;">
+                Fundamental Research
+            </div>
             <h2>Trailing Edge Geometry</h2>
-            <p>We investigate the fundamental trade-offs between <strong>Sharp</strong> and <strong>Rounded</strong> trailing edges. While sharp edges maximize steady lift, rounded edges (common in manufacturing) introduce complex unsteady behaviors where the <strong>Kutta condition fails</strong>, delaying circulation buildup.</p>
+            <p>
+                We investigate the fundamental trade-offs between <strong>Sharp</strong> and <strong>Rounded</strong> trailing edges.
+                While sharp edges maximize steady lift, rounded edges (common in manufacturing) introduce complex unsteady behaviors where the <strong>Kutta condition fails</strong>, delaying circulation buildup.
+            </p>
         </div>
     </section>
 
+    <!-- SECTION 3: GPU RESEARCH -->
     <section class="scroll-section" id="section-gpu">
         <div class="research-highlight" style="margin-left: 0; margin-right: auto; border-left: none; border-right: 6px solid #FFC627;">
             <div class="gpu-tag">GPU ACCELERATION + AI</div>
             <h2>3D Flow Super-Resolution</h2>
-            <p>We enhance low-resolution unsteady flows (e.g., Taylor–Green vortex on 128³ grids) using a <strong>3D Attention-Augmented U-Net</strong>.</p>
-            <p style="margin-top: 1rem;">This model reconstructs fine-scale vorticity fields comparable to high-fidelity <strong>Remeshed Vortex Methods (RVM)</strong>, enabling efficient modeling of turbulent coherent structures.</p>
+            <p>
+                We enhance low-resolution unsteady flows (e.g., Taylor–Green vortex on 128³ grids) using a 
+                <strong>3D Attention-Augmented U-Net</strong>.
+            </p>
+            <p style="margin-top: 1rem;">
+                This model reconstructs fine-scale vorticity fields comparable to 
+                high-fidelity <strong>Remeshed Vortex Methods (RVM)</strong>, enabling efficient modeling of turbulent coherent structures.
+            </p>
             <div style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.8; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
-                <i class="fas fa-mouse-pointer"></i> <strong>Interactive:</strong> Click "GPU Turbulence" (Top Right) then drag your mouse to create vorticity!
+                <i class="fas fa-mouse-pointer"></i> <strong>Interactive:</strong> Click "GPU Turbulence" (Top Right) to interact with the solver.
             </div>
         </div>
     </section>
 
+    <!-- SECTION 4: COMPARISON -->
     <section id="geometry-section">
         <div class="section-header">
             <h3>The Round Trailing Edge Family</h3>
-            <p style="max-width: 800px; font-size: 1.1rem; line-height: 1.6;">Our study analyzes a family of Joukowski-derived airfoils with varying trailing edge bluntness.</p>
+            <p style="max-width: 800px; font-size: 1.1rem; line-height: 1.6;">
+                Our study analyzes a family of Joukowski-derived airfoils with varying trailing edge bluntness.
+            </p>
         </div>
         <div class="ratio-grid">
             <div class="ratio-card">
@@ -121,9 +321,10 @@ title: Home
             <a href="https://saumya2402.github.io/LANCA-lab/#research" class="btn-research">Learn More <i class="fas fa-arrow-right"></i></a>
         </div>
     </section>
+
 </div>
 
-<!-- MAIN SCRIPT -->
+<!-- SCRIPTS -->
 <script>
 (function() {
     // --- 1. FLUID SIMULATION (Full WebGL Solver) ---
@@ -582,7 +783,7 @@ title: Home
             container.appendChild(renderer.domElement);
             
             const shape = new THREE.Shape();
-            const steps = 120;
+            const steps = 100;
             for(let i=0; i<=steps; i++) {
                 const t = (i/steps)*Math.PI*2;
                 const zx = mu_x + a*Math.cos(t), zy = mu_y + a*Math.sin(t);
