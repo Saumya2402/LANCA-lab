@@ -114,12 +114,12 @@ const FluidSim = (function () {
         uniform vec2 texelSize;
 
         void main(){
-            float L = texture2D(uVelocity, vUv - vec2(texelSize.x,0)).x;
-            float R = texture2D(uVelocity, vUv + vec2(texelSize.x,0)).x;
-            float T = texture2D(uVelocity, vUv + vec2(0,texelSize.y)).y;
-            float B = texture2D(uVelocity, vUv - vec2(0,texelSize.y)).y;
+            float L = texture2D(uVelocity, vUv - vec2(texelSize.x,0.0)).x;
+            float R = texture2D(uVelocity, vUv + vec2(texelSize.x,0.0)).x;
+            float T = texture2D(uVelocity, vUv + vec2(0.0,texelSize.y)).y;
+            float B = texture2D(uVelocity, vUv - vec2(0.0,texelSize.y)).y;
             float div = 0.5 * (R - L + T - B);
-            gl_FragColor = vec4(div,0,0,1);
+            gl_FragColor = vec4(div,0.0,0.0,1.0);
         }
     `;
 
@@ -131,13 +131,13 @@ const FluidSim = (function () {
         uniform vec2 texelSize;
 
         void main(){
-            float L = texture2D(uPressure, vUv - vec2(texelSize.x,0)).x;
-            float R = texture2D(uPressure, vUv + vec2(texelSize.x,0)).x;
-            float T = texture2D(uPressure, vUv + vec2(0,texelSize.y)).x;
-            float B = texture2D(uPressure, vUv - vec2(0,texelSize.y)).x;
+            float L = texture2D(uPressure, vUv - vec2(texelSize.x,0.0)).x;
+            float R = texture2D(uPressure, vUv + vec2(texelSize.x,0.0)).x;
+            float T = texture2D(uPressure, vUv + vec2(0.0,texelSize.y)).x;
+            float B = texture2D(uPressure, vUv - vec2(0.0,texelSize.y)).x;
             float div = texture2D(uDivergence, vUv).x;
             float p = (L + R + T + B - div) * 0.25;
-            gl_FragColor = vec4(p,0,0,1);
+            gl_FragColor = vec4(p,0.0,0.0,1.0);
         }
     `;
 
@@ -149,14 +149,14 @@ const FluidSim = (function () {
         uniform vec2 texelSize;
 
         void main(){
-            float L = texture2D(uPressure, vUv - vec2(texelSize.x,0)).x;
-            float R = texture2D(uPressure, vUv + vec2(texelSize.x,0)).x;
-            float T = texture2D(uPressure, vUv + vec2(0,texelSize.y)).x;
-            float B = texture2D(uPressure, vUv - vec2(0,texelSize.y)).x;
+            float L = texture2D(uPressure, vUv - vec2(texelSize.x,0.0)).x;
+            float R = texture2D(uPressure, vUv + vec2(texelSize.x,0.0)).x;
+            float T = texture2D(uPressure, vUv + vec2(0.0,texelSize.y)).x;
+            float B = texture2D(uPressure, vUv - vec2(0.0,texelSize.y)).x;
 
             vec2 vel = texture2D(uVelocity, vUv).xy;
             vel -= vec2(R - L, T - B);
-            gl_FragColor = vec4(vel,0,1);
+            gl_FragColor = vec4(vel,0.0,1.0);
         }
     `;
 
@@ -173,6 +173,10 @@ const FluidSim = (function () {
         const program = gl.createProgram();
         gl.attachShader(program, vs);
         gl.attachShader(program, fs);
+
+        // 🔑 Make sure aPosition is *always* attribute location 0 across all programs
+        gl.bindAttribLocation(program, 0, "aPosition");
+
         gl.linkProgram(program);
 
         const uniforms = {};
@@ -198,12 +202,14 @@ const FluidSim = (function () {
     function rebuildTextures() {
         const w = canvas.width;
         const h = canvas.height;
+
+        // Use float-16 FBOs (requires EXT_color_buffer_float on some platforms).
         const type = gl.HALF_FLOAT;
 
-        velocity = createDoubleFBO(w, h, gl.RGBA16F, gl.RGBA, type, gl.LINEAR);
-        density  = createDoubleFBO(w, h, gl.RGBA16F, gl.RGBA, type, gl.LINEAR);
-        pressure = createDoubleFBO(w, h, gl.R16F,    gl.RED,  type, gl.NEAREST);
-        divergence = createFBO(w, h, gl.R16F, gl.RED, type, gl.NEAREST);
+        velocity   = createDoubleFBO(w, h, gl.RGBA16F, gl.RGBA, type, gl.LINEAR);
+        density    = createDoubleFBO(w, h, gl.RGBA16F, gl.RGBA, type, gl.LINEAR);
+        pressure   = createDoubleFBO(w, h, gl.R16F,    gl.RED,  type, gl.NEAREST);
+        divergence = createFBO     (w, h, gl.R16F,     gl.RED,  type, gl.NEAREST);
     }
 
     // ---------------------------------------
@@ -212,49 +218,70 @@ const FluidSim = (function () {
     function init(c) {
         canvas = c;
 
-        // ⭐ CRITICAL FIX: assign REAL RESOLUTION before WebGL init
+        // Match actual display size
         canvas.width  = canvas.clientWidth;
         canvas.height = canvas.clientHeight;
 
         gl = canvas.getContext("webgl2");
-        if (!gl) return alert("WebGL2 not supported.");
+        if (!gl) {
+            alert("WebGL2 not supported.");
+            return;
+        }
 
-        // Create fullscreen quad
+        // Optional but safer on some platforms
+        gl.getExtension("EXT_color_buffer_float");
+
+        // Fullscreen quad
         const quad = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, quad);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+            gl.STATIC_DRAW
+        );
 
         // Create shader programs
-        pDisplay   = createProgram(baseVertex, displayShader);
-        pSplat     = createProgram(baseVertex, splatShader);
-        pAdvect    = createProgram(baseVertex, advectionShader);
-        pDiv       = createProgram(baseVertex, divergenceShader);
-        pPressure  = createProgram(baseVertex, pressureShader);
-        pGradient  = createProgram(baseVertex, gradientShader);
+        pDisplay  = createProgram(baseVertex, displayShader);
+        pSplat    = createProgram(baseVertex, splatShader);
+        pAdvect   = createProgram(baseVertex, advectionShader);
+        pDiv      = createProgram(baseVertex, divergenceShader);
+        pPressure = createProgram(baseVertex, pressureShader);
+        pGradient = createProgram(baseVertex, gradientShader);
 
-        // Build textures
+        // 🔑 Set up the shared vertex attribute once (for location 0)
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+        // Create textures / FBOs
         rebuildTextures();
 
         // Pointer interactions
-        canvas.addEventListener("mousedown", e=>{
+        canvas.addEventListener("mousedown", e => {
             pointer.down = true;
             pointer.color = [Math.random(), Math.random(), Math.random()];
         });
-        canvas.addEventListener("mousemove", e=>{
+
+        canvas.addEventListener("mousemove", e => {
             pointer.dx = e.offsetX - pointer.x;
             pointer.dy = e.offsetY - pointer.y;
             pointer.x  = e.offsetX;
             pointer.y  = e.offsetY;
             pointer.moved = true;
         });
-        window.addEventListener("mouseup", ()=> pointer.down=false);
+
+        window.addEventListener("mouseup", () => {
+            pointer.down = false;
+        });
 
         // Resize handler
-        window.addEventListener("resize", ()=>{
+        window.addEventListener("resize", () => {
             canvas.width  = canvas.clientWidth;
             canvas.height = canvas.clientHeight;
+            gl.viewport(0, 0, canvas.width, canvas.height);
             rebuildTextures();
         });
+
+        gl.viewport(0, 0, canvas.width, canvas.height);
 
         animate();
     }
@@ -268,7 +295,12 @@ const FluidSim = (function () {
 
         gl.useProgram(pSplat.program);
         gl.uniform2f(pSplat.uniforms.point, x, y);
-        gl.uniform3f(pSplat.uniforms.color, pointer.dx*5.0, -pointer.dy*5.0, 1.0);
+        gl.uniform3f(
+            pSplat.uniforms.color,
+            pointer.dx * 5.0,
+            -pointer.dy * 5.0,
+            1.0
+        );
         gl.uniform1f(pSplat.uniforms.radius, config.SPLAT_RADIUS);
 
         // Velocity splat
@@ -288,9 +320,9 @@ const FluidSim = (function () {
     // Simulation step
     // ---------------------------------------
     function step(dt) {
-        const texel = [1/canvas.width, 1/canvas.height];
+        const texel = [1 / canvas.width, 1 / canvas.height];
 
-        // Divergence
+        // --- Divergence ---
         gl.useProgram(pDiv.program);
         gl.uniform2fv(pDiv.uniforms.texelSize, texel);
         gl.activeTexture(gl.TEXTURE0);
@@ -298,22 +330,22 @@ const FluidSim = (function () {
         gl.uniform1i(pDiv.uniforms.uVelocity, 0);
         blit(divergence.fbo);
 
-        // Pressure iterations
+        // --- Pressure solve ---
         gl.useProgram(pPressure.program);
         gl.uniform2fv(pPressure.uniforms.texelSize, texel);
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, divergence.texture);
         gl.uniform1i(pPressure.uniforms.uDivergence, 1);
 
-        for (let i=0;i<config.PRESSURE_ITERATIONS;i++){
-            gl.activeTexture(GL_TEXTURE0);
+        for (let i = 0; i < config.PRESSURE_ITERATIONS; i++) {
+            gl.activeTexture(gl.TEXTURE0);          // 🔧 was GL_TEXTURE0 (undefined)
             gl.bindTexture(gl.TEXTURE_2D, pressure.read.texture);
             gl.uniform1i(pPressure.uniforms.uPressure, 0);
             blit(pressure.write.fbo);
             pressure.swap();
         }
 
-        // Gradient subtract
+        // --- Subtract gradient ---
         gl.useProgram(pGradient.program);
         gl.uniform2fv(pGradient.uniforms.texelSize, texel);
 
@@ -328,7 +360,7 @@ const FluidSim = (function () {
         blit(velocity.write.fbo);
         velocity.swap();
 
-        // Velocity advection
+        // --- Advection (velocity) ---
         gl.useProgram(pAdvect.program);
         gl.uniform2fv(pAdvect.uniforms.texelSize, texel);
         gl.uniform1f(pAdvect.uniforms.dt, dt);
@@ -345,9 +377,8 @@ const FluidSim = (function () {
         blit(velocity.write.fbo);
         velocity.swap();
 
-        // Density advection
+        // --- Advection (density) ---
         gl.uniform1f(pAdvect.uniforms.dissipation, config.DENSITY_DISSIPATION);
-
         gl.bindTexture(gl.TEXTURE_2D, density.read.texture);
         blit(density.write.fbo);
         density.swap();
