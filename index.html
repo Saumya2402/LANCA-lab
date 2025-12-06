@@ -3,7 +3,7 @@ layout: default
 title: Home
 ---
 
-<!-- LOAD LIBRARIES -->
+<!-- LIBRARIES -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -27,19 +27,7 @@ title: Home
         z-index: -1;
     }
 
-    /* Canvas for Airfoil (Three.js) */
-    #airfoil-canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 1;
-        transition: opacity 0.8s ease;
-        pointer-events: none; /* Let clicks pass through unless needed */
-    }
-
-    /* Background for GPU "fluid" mode (CSS animated vortex) */
+    /* Canvas for Vortex background (WebGL) */
     #fluid-canvas {
         position: absolute;
         top: 0;
@@ -48,44 +36,23 @@ title: Home
         height: 100%;
         z-index: 0;
         opacity: 0;
-        transition: opacity 0.8s ease;
-        /* Passive vortex-ish gradient background */
-        background: radial-gradient(circle at 20% 20%, #8C1D40 0, transparent 45%),
-                    radial-gradient(circle at 80% 30%, #FFC627 0, transparent 45%),
-                    radial-gradient(circle at 30% 80%, #1b6df0 0, transparent 45%),
-                    radial-gradient(circle at 70% 75%, #06d6a0 0, transparent 45%),
-                    #050505;
-        background-size: 200% 200%;
-        filter: blur(0px);
-        pointer-events: none; /* purely decorative */
+        transition: opacity 1s ease;
+        display: block;
     }
 
-    /* When GPU mode is active we animate the background */
-    #fluid-canvas.gpu-active {
-        opacity: 0.75;
-        animation: fluidVortex 18s infinite alternate ease-in-out;
-        filter: blur(1px);
+    /* Container for Airfoil (Three.js) */
+    #airfoil-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        transition: opacity 1s ease;
+        pointer-events: none;
     }
 
-    @keyframes fluidVortex {
-        0% {
-            background-position: 0% 0%;
-            transform: scale(1);
-            filter: hue-rotate(0deg) blur(1px);
-        }
-        50% {
-            background-position: 100% 50%;
-            transform: scale(1.04);
-            filter: hue-rotate(40deg) blur(1.2px);
-        }
-        100% {
-            background-position: 0% 100%;
-            transform: scale(1.02);
-            filter: hue-rotate(90deg) blur(1px);
-        }
-    }
-
-    /* --- UI CONTROLS --- */
+    /* --- UI CONTROLS (Top-right toggle) --- */
     #sim-ui {
         position: fixed;
         top: 100px;
@@ -116,9 +83,7 @@ title: Home
         background: rgba(140, 29, 64, 0.8);
     }
 
-    .sim-btn:hover {
-        background: rgba(140, 29, 64, 0.4);
-    }
+    .sim-btn:hover { background: rgba(140, 29, 64, 0.4); }
 
     /* --- SECTIONS --- */
     .scroll-section {
@@ -163,6 +128,31 @@ title: Home
         margin-left: 5px;
     }
 
+    /* --- SCROLL HELPER --- */
+    #scroll-helper {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.8rem;
+        letter-spacing: 2px;
+        opacity: 0.6;
+        text-transform: uppercase;
+        text-align: center;
+        pointer-events: none;
+    }
+
+    #scroll-helper i {
+        display: block;
+        margin-top: 10px;
+        animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(5px); }
+    }
+
     /* --- HIGHLIGHT BOX --- */
     .research-highlight {
         background: rgba(20, 20, 20, 0.1);
@@ -186,9 +176,7 @@ title: Home
         text-shadow: 0 2px 4px rgba(0,0,0,0.8);
     }
 
-    .research-highlight p {
-        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-    }
+    .research-highlight p { text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
 
     .gpu-tag {
         display: inline-block;
@@ -210,28 +198,24 @@ title: Home
         text-align: right;
     }
 
-    /* Small inline button inside GPU description */
-    .btn-inline {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 14px;
-        margin-top: 8px;
-        border-radius: 3px;
-        border: 1px solid rgba(255,255,255,0.25);
-        background: rgba(0, 0, 0, 0.4);
-        color: #FFC627;
+    .gpu-demo-button {
+        display: inline-block;
+        margin-top: 0.75rem;
+        padding: 8px 16px;
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 1px;
+        background-color: rgba(0,0,0,0.4);
+        color: #FFC627;
+        border: 1px solid rgba(255,198,39,0.4);
+        border-radius: 3px;
         cursor: pointer;
-        text-decoration: none;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
     }
 
-    .btn-inline:hover {
-        background: rgba(255, 198, 39, 0.15);
-        border-color: #FFC627;
+    .gpu-demo-button:hover {
+        background-color: #FFC627;
+        color: #1a1a1a;
     }
 
     /* --- GEOMETRY SECTION --- */
@@ -267,10 +251,7 @@ title: Home
         text-align: center;
         transition: transform 0.3s ease;
     }
-
-    .ratio-card:hover {
-        transform: translateY(-5px);
-    }
+    .ratio-card:hover { transform: translateY(-5px); }
 
     .ratio-img-placeholder {
         width: 100%;
@@ -283,20 +264,17 @@ title: Home
         overflow: hidden;
         border: 1px solid #eee;
     }
-
     .ratio-img-placeholder img {
         width: 100%;
         height: 100%;
         object-fit: contain;
     }
-
     .ratio-title {
         font-weight: 700;
         color: #8C1D40;
         font-size: 1.2rem;
         margin-bottom: 5px;
     }
-
     .ratio-desc {
         font-size: 0.9rem;
         color: #555;
@@ -316,7 +294,6 @@ title: Home
         transition: all 0.3s ease;
         box-shadow: 0 5px 15px rgba(140, 29, 64, 0.3);
     }
-
     .btn-research:hover {
         background-color: #6d1632;
         transform: translateY(-2px);
@@ -324,17 +301,13 @@ title: Home
     }
 
     @media (max-width: 768px) {
-        .lab-title-block h1 {
-            font-size: 3.5rem;
-        }
+        .lab-title-block h1 { font-size: 3.5rem; }
     }
 </style>
 
 <!-- SIMULATION CONTAINER -->
 <div id="sim-container">
-    <!-- Passive animated background for GPU mode -->
     <canvas id="fluid-canvas"></canvas>
-    <!-- Airfoil WebGL renderer attaches here -->
     <div id="airfoil-canvas"></div>
 </div>
 
@@ -346,7 +319,7 @@ title: Home
     </div>
     <div class="sim-btn" id="btn-fluid" onclick="switchSim('fluid')">
         GPU Turbulence
-        <div style="font-size:0.7rem; opacity:0.7;">Navier-Stokes</div>
+        <div style="font-size:0.7rem; opacity:0.7;">Navier–Stokes</div>
     </div>
 </div>
 
@@ -359,9 +332,10 @@ title: Home
             <h1>Laboratory for<br>Analytical &<br>Computational Analysis</h1>
             <p>Fundamental Aerodynamics • High-Fidelity CFD</p>
         </div>
-        <div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; letter-spacing: 2px; opacity: 0.6; text-transform: uppercase;">
-            Scroll to Pitch Airfoil
-            <br><i class="fas fa-chevron-down" style="display:block; text-align:center; margin-top:10px; animation: bounce 2s infinite;"></i>
+        <div id="scroll-helper">
+            <span id="scroll-helper-text">Scroll to Pitch Airfoil</span>
+            <br>
+            <i class="fas fa-chevron-down"></i>
         </div>
     </section>
 
@@ -388,24 +362,19 @@ title: Home
             </div>
             <h2>3D Flow Super-Resolution</h2>
             <p>
-                We enhance low-resolution unsteady flows (e.g., Taylor–Green vortex on 128³ grids) using a
+                We enhance low-resolution unsteady flows (e.g., Taylor–Green vortex on 128³ grids) using a 
                 <strong>3D Attention-Augmented U-Net</strong>.
             </p>
             <p style="margin-top: 1rem;">
-                This model reconstructs fine-scale vorticity fields comparable to
+                This model reconstructs fine-scale vorticity fields comparable to 
                 high-fidelity <strong>Remeshed Vortex Methods (RVM)</strong>, enabling efficient modeling of turbulent coherent structures.
             </p>
-            <div style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.85; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
-                <div><strong>GPU Turbulence Mode:</strong> activates a passive turbulent flow background.</div>
-                <div style="margin-top: 6px;">
-                    <button id="btn-open-fluid-full" class="btn-inline">
-                        <span>Interactive: Open Full Solver</span>
-                        <span style="font-size: 0.9rem;">⟶</span>
-                    </button>
-                </div>
-                <div style="margin-top: 4px; opacity: 0.8;">
-                    Opens a fullscreen Navier–Stokes demo powered by our GPU solver.
-                </div>
+            <div style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.8; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
+                Opens a fullscreen Navier–Stokes demo for fun!
+                <br>
+                <button id="btn-gpu-fullscreen" class="gpu-demo-button">
+                    Open Navier–Stokes Demo
+                </button>
             </div>
         </div>
     </section>
@@ -459,8 +428,161 @@ title: Home
 <!-- SCRIPTS -->
 <script>
 (function() {
+    // -------------------------------------------------
+    // 1. PASSIVE VORTEX BACKGROUND (WebGL fragment shader)
+    // -------------------------------------------------
+    window.VortexBackground = (function() {
+        let canvas, gl, program, buffer;
+        let uTime, uScroll, uResolution;
+        let startTime = 0;
+        let scrollFactor = 0;
 
-    // --- 1. AIRFOIL SIMULATION (THREE.JS) ---
+        const vertexSrc = `
+            attribute vec2 a_position;
+            varying vec2 v_uv;
+            void main() {
+                v_uv = a_position * 0.5 + 0.5;
+                gl_Position = vec4(a_position, 0.0, 1.0);
+            }
+        `;
+
+        // Taylor–Green–style swirly field, with scroll controlling strength
+        const fragmentSrc = `
+            precision highp float;
+            varying vec2 v_uv;
+            uniform float u_time;
+            uniform float u_scroll;
+            uniform vec2 u_resolution;
+
+            // simple pseudo-vortex field
+            vec2 vortex(vec2 p, vec2 c, float strength) {
+                vec2 r = p - c;
+                float d2 = dot(r, r);
+                float w = strength * exp(-3.0 * d2);
+                return vec2(-r.y, r.x) * w;
+            }
+
+            void main() {
+                // normalize coords to [-1,1]
+                vec2 p = (v_uv * 2.0 - 1.0);
+                float t = u_time * 0.35;
+
+                vec2 c1 = vec2(0.5 * sin(t), 0.5 * cos(t));
+                vec2 c2 = vec2(0.5 * sin(t + 2.1), 0.5 * cos(t + 1.3));
+
+                float s = mix(0.3, 1.2, u_scroll); // scroll controls swirl strength
+
+                vec2 v = vortex(p, c1, s) + vortex(p, c2, -s);
+
+                // integrate "backwards" to get a warped coordinate
+                vec2 q = p + 0.8 * v;
+
+                // nice color palette
+                float r = 0.5 + 0.5 * sin(3.0 * q.x + 2.0 * q.y + t);
+                float g = 0.5 + 0.5 * sin(2.0 * q.x - 2.5 * q.y - t * 1.2);
+                float b = 0.5 + 0.5 * sin(-2.5 * q.x + 1.5 * q.y + t * 0.6);
+
+                vec3 base = vec3(r, g, b);
+
+                // subtle vignette
+                float dist = length(p);
+                float fade = smoothstep(1.4, 0.3, dist);
+                base *= fade;
+
+                gl_FragColor = vec4(base, 1.0);
+            }
+        `;
+
+        function createShader(type, src) {
+            const sh = gl.createShader(type);
+            gl.shaderSource(sh, src);
+            gl.compileShader(sh);
+            return sh;
+        }
+
+        function createProgram(vsSrc, fsSrc) {
+            const vs = createShader(gl.VERTEX_SHADER, vsSrc);
+            const fs = createShader(gl.FRAGMENT_SHADER, fsSrc);
+            const prog = gl.createProgram();
+            gl.attachShader(prog, vs);
+            gl.attachShader(prog, fs);
+            gl.linkProgram(prog);
+            return prog;
+        }
+
+        function resize() {
+            if (!canvas || !gl) return;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const width = canvas.clientWidth * dpr;
+            const height = canvas.clientHeight * dpr;
+            if (canvas.width !== width || canvas.height !== height) {
+                canvas.width = width;
+                canvas.height = height;
+                gl.viewport(0, 0, width, height);
+            }
+        }
+
+        function render(now) {
+            if (!gl || !program) return;
+            const t = (now - startTime) * 0.001;
+
+            gl.useProgram(program);
+            gl.uniform1f(uTime, t);
+            gl.uniform1f(uScroll, scrollFactor);
+            gl.uniform2f(uResolution, canvas.width, canvas.height);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            requestAnimationFrame(render);
+        }
+
+        function init() {
+            canvas = document.getElementById('fluid-canvas');
+            if (!canvas) return;
+
+            gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (!gl) {
+                console.warn('WebGL not supported for vortex background.');
+                return;
+            }
+
+            program = createProgram(vertexSrc, fragmentSrc);
+            buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            const verts = new Float32Array([
+                -1, -1,
+                 1, -1,
+                -1,  1,
+                 1,  1
+            ]);
+            gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+
+            const posLoc = gl.getAttribLocation(program, 'a_position');
+            gl.enableVertexAttribArray(posLoc);
+            gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+            uTime       = gl.getUniformLocation(program, 'u_time');
+            uScroll     = gl.getUniformLocation(program, 'u_scroll');
+            uResolution = gl.getUniformLocation(program, 'u_resolution');
+
+            resize();
+            window.addEventListener('resize', resize);
+
+            startTime = performance.now();
+            requestAnimationFrame(render);
+        }
+
+        function setScrollFactor(v) {
+            scrollFactor = Math.max(0, Math.min(1, v));
+        }
+
+        return { init, setScrollFactor };
+    })();
+
+    // -------------------------------------------------
+    // 2. AIRFOIL SIMULATION (Three.js)
+    // -------------------------------------------------
     const AirfoilSim = (function() {
         let scene, camera, renderer, airfoil, flowField;
         let alpha = 0;
@@ -481,7 +603,7 @@ title: Home
             scene = new THREE.Scene();
             scene.background = null;
 
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
             camera.position.z = 7.0;
 
             renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -489,48 +611,39 @@ title: Home
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // Joukowski airfoil geometry
+            // Airfoil geometry
             const shape = new THREE.Shape();
             const steps = 120;
             for (let i = 0; i <= steps; i++) {
-                const t = (i / steps) * Math.PI * 2;
-                const zx = mu_x + a * Math.cos(t), zy = mu_y + a * Math.sin(t);
-                const d = zx * zx + zy * zy;
-                const x = zx * (1 + (b * b) / d), y = zy * (1 - (b * b) / d);
-                if (i === 0) shape.moveTo(x, y);
-                else shape.lineTo(x, y);
+                const t = (i/steps)*Math.PI*2;
+                const zx = mu_x + a*Math.cos(t), zy = mu_y + a*Math.sin(t);
+                const d = zx*zx + zy*zy;
+                const x = zx*(1+(b*b)/d), y = zy*(1-(b*b)/d);
+                if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
             }
             const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.2, bevelEnabled: false });
             geo.center();
 
             airfoil = new THREE.Mesh(
                 geo,
-                new THREE.MeshBasicMaterial({
-                    color: 0x8C1D40,
-                    wireframe: true,
-                    opacity: 0.5,
-                    transparent: true
-                })
+                new THREE.MeshBasicMaterial({ color: 0x8C1D40, wireframe: true, opacity: 0.5, transparent: true })
             );
-            const core = new THREE.Mesh(
-                geo,
-                new THREE.MeshBasicMaterial({ color: 0x000000 })
-            );
+            const core = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x000000 }));
             core.scale.set(0.99, 0.99, 1);
             airfoil.add(core);
             scene.add(airfoil);
 
-            // Particle "streamlines"
+            // Particle flow lines
             const count = 60, segs = 60;
             const pos = [];
             const pData = [];
             for (let i = 0; i < count; i++) {
-                let yn = (i / (count - 1)) * 2 - 1;
-                let y = Math.sign(yn) * Math.pow(Math.abs(yn), 1.2) * 3.5;
+                let yn = (i/(count-1))*2-1;
+                let y = Math.sign(yn)*Math.pow(Math.abs(yn), 1.2)*3.5;
                 for (let j = 0; j < segs; j++) {
-                    let x = (j / segs) * 20 - 10;
-                    pos.push(x, y, 0);
-                    pData.push({ x: x, y: y, speed: 0.05 });
+                    let x = (j/segs)*20 - 10;
+                    pos.push(x,y,0);
+                    pData.push({x:x, y:y, speed: 0.05});
                 }
             }
             const pGeo = new THREE.BufferGeometry();
@@ -538,66 +651,58 @@ title: Home
             pGeo.userData = { data: pData };
             flowField = new THREE.Points(
                 pGeo,
-                new THREE.PointsMaterial({
-                    color: 0xFFC627,
-                    size: 0.035,
-                    transparent: true,
-                    opacity: 0.6
-                })
+                new THREE.PointsMaterial({ color: 0xFFC627, size: 0.035, transparent: true, opacity: 0.6 })
             );
             scene.add(flowField);
 
             animate();
+
+            window.addEventListener('resize', () => {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+            });
         }
 
         function getVel(px, py, ang) {
             const c = Math.cos(ang), s = Math.sin(ang);
-            const zx = px * c + py * s, zy = -px * s + py * c;
+            const zx = px*c + py*s, zy = -px*s + py*c;
 
-            const hx = zx / 2, hy = zy / 2;
-            const sx = (hx * hx - hy * hy) - b * b, sy = 2 * hx * hy;
-            const r = Math.sqrt(Math.sqrt(sx * sx + sy * sy));
-            const phi = Math.atan2(sy, sx) / 2;
-            const rx = r * Math.cos(phi), ry = r * Math.sin(phi);
+            const hx = zx/2, hy = zy/2;
+            const sx = (hx*hx - hy*hy) - b*b, sy = 2*hx*hy;
+            const r = Math.sqrt(Math.sqrt(sx*sx + sy*sy));
+            const phi = Math.atan2(sy, sx)/2;
+            const rx = r*Math.cos(phi), ry = r*Math.sin(phi);
             let Zx, Zy;
 
-            if ((hx + rx) ** 2 + (hy + ry) ** 2 > (hx - rx) ** 2 + (hy - ry) ** 2) {
-                Zx = hx + rx; Zy = hy + ry;
-            } else {
-                Zx = hx - rx; Zy = hy - ry;
-            }
+            if ((hx+rx)**2 + (hy+ry)**2 > (hx-rx)**2 + (hy-ry)**2) { Zx=hx+rx; Zy=hy+ry; }
+            else { Zx=hx-rx; Zy=hy-ry; }
 
             const Zcx = Zx - mu_x, Zcy = Zy - mu_y;
             const cm = Math.cos(-ang), sm = Math.sin(-ang);
-            const Zrx = Zcx * cm - Zcy * sm, Zry = Zcx * sm + Zcy * cm;
+            const Zrx = Zcx*cm - Zcy*sm, Zry = Zcx*sm + Zcy*cm;
 
-            const Zr2 = Zrx * Zrx - Zry * Zry, Zr2i = 2 * Zrx * Zry;
-            const m4 = Zr2 * Zr2 + Zr2i * Zr2i;
-            if (m4 < 1e-5) return { u: 0, v: 0 };
+            const Zr2 = Zrx*Zrx - Zry*Zry, Zr2i = 2*Zrx*Zry;
+            const m4 = Zr2*Zr2 + Zr2i*Zr2i;
+            if (m4 < 1e-5) return {u:0, v:0};
 
-            let Wx = V_inf * (1 - a * a * Zr2 / m4);
-            let Wy = V_inf * (0 - a * a * (-Zr2i) / m4);
+            let Wx = V_inf*(1 - a*a * Zr2/m4), Wy = V_inf*(0 - a*a * (-Zr2i)/m4);
 
-            const Gamma = 4 * Math.PI * V_inf * a * Math.sin(ang);
-            const m2 = Zrx * Zrx + Zry * Zry;
-            const G = Gamma / (2 * Math.PI * m2);
-            Wx += G * (-Zry);
-            Wy += G * (Zrx);
+            const Gamma = 4*Math.PI*V_inf*a*Math.sin(ang);
+            const m2 = Zrx*Zrx + Zry*Zry;
+            const G = Gamma / (2*Math.PI*m2);
+            Wx += G*(-Zry); Wy += G*(Zrx);
 
-            const Vzx = Wx * cm - Wy * sm, Vzy = Wx * sm + Wy * cm;
+            const Vzx = Wx*cm - Wy*sm, Vzy = Wx*sm + Wy*cm;
 
-            const Z2x = Zx * Zx - Zy * Zy, Z2y = 2 * Zx * Zy;
-            const mZ4 = Z2x * Z2x + Z2y * Z2y;
-            const dzx = 1 - b * b * Z2x / mZ4, dzy = 0 - b * b * (-Z2y) / mZ4;
-            const den = dzx * dzx + dzy * dzy;
-            if (den < 1e-4) return { u: V_inf, v: 0 };
+            const Z2x = Zx*Zx - Zy*Zy, Z2y = 2*Zx*Zy;
+            const mZ4 = Z2x*Z2x + Z2y*Z2y;
+            const dzx = 1 - b*b * Z2x/mZ4, dzy = 0 - b*b * (-Z2y)/mZ4;
+            const den = dzx*dzx + dzy*dzy;
+            if (den < 1e-4) return {u:V_inf, v:0};
 
-            const ux = (Vzx * dzx + Vzy * dzy) / den;
-            const uy = (Vzy * dzx - Vzx * dzy) / den;
-            return {
-                u: ux * c - (-uy) * (-s),
-                v: ux * (-s) + (-uy) * c
-            };
+            const ux = (Vzx*dzx + Vzy*dzy)/den, uy = (Vzy*dzx - Vzx*dzy)/den;
+            return { u: ux*c - (-uy)*(-s), v: ux*(-s) + (-uy)*c };
         }
 
         function animate() {
@@ -611,50 +716,33 @@ title: Home
             for (let i = 0; i < data.length; i++) {
                 let p = data[i];
                 let v = getVel(p.x, p.y, alpha);
-                if (isNaN(v.u)) v = { u: V_inf, v: 0 };
-                p.x += v.u * 1.5;
-                p.y += v.v * 1.5;
+                if (isNaN(v.u)) v = {u:V_inf, v:0};
+                p.x += v.u*1.5; p.y += v.v*1.5;
                 if (p.x > 10 || Math.abs(p.y) > 6) {
                     p.x = -10;
-                    p.y = (Math.random() - 0.5) * 7;
+                    p.y = (Math.random()-0.5)*7;
                 }
-                pos[i * 3] = p.x;
-                pos[i * 3 + 1] = p.y;
+                pos[i*3] = p.x;
+                pos[i*3+1] = p.y;
             }
             flowField.geometry.attributes.position.needsUpdate = true;
             renderer.render(scene, camera);
         }
 
-        window.addEventListener('resize', () => {
-            if (!renderer || !camera) return;
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-        });
-
         return api;
     })();
 
-    // --- 2. GLOBAL CONTROLLER ---
+    // -------------------------------------------------
+    // 3. GLOBAL CONTROLLER / MODE SWITCHING
+    // -------------------------------------------------
     window.currentSim = 'airfoil';
     window.isTransitioning = false;
-    let alpha = 0;
 
-    // Initialize AIRFOIL
+    // Init sims
     AirfoilSim.init();
+    VortexBackground.init();
 
-    const fluidCanvasEl = document.getElementById('fluid-canvas');
-
-    // GPU full solver button (opens separate page)
-    const fullSolverBtn = document.getElementById('btn-open-fluid-full');
-    if (fullSolverBtn) {
-        fullSolverBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            // TODO: point this to your fullscreen solver page
-            // that uses assets/js/original_fluid.js + dat.gui.
-            window.open('gpu_solver.html', '_blank');
-        });
-    }
+    const scrollHelperText = document.getElementById('scroll-helper-text');
 
     window.switchSim = function(mode) {
         if (mode === window.currentSim || window.isTransitioning) return;
@@ -662,60 +750,82 @@ title: Home
         window.currentSim = mode;
 
         document.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-' + mode).classList.add('active');
+        document.getElementById('btn-'+mode).classList.add('active');
+
+        if (scrollHelperText) {
+            if (mode === 'fluid') {
+                scrollHelperText.textContent = 'Scroll to Move Vortices';
+            } else {
+                scrollHelperText.textContent = 'Scroll to Pitch Airfoil';
+            }
+        }
 
         const tl = gsap.timeline({
             onComplete: () => { window.isTransitioning = false; }
         });
-
         const cam = AirfoilSim.getCamera();
+        const fluidCanvasEl = document.getElementById('fluid-canvas');
+        const airfoilCanvasEl = document.getElementById('airfoil-canvas');
         const airfoilObj = AirfoilSim.getAirfoil();
         const flowObj = AirfoilSim.getFlow();
 
         if (mode === 'fluid') {
-            // Turn on passive vortex background and fade out airfoil
-            if (fluidCanvasEl) fluidCanvasEl.classList.add('gpu-active');
-
+            // Move camera back, fade out airfoil, fade in vortices
             tl.to(cam.position, { z: 20, duration: 0.8, ease: "power2.in" });
-            tl.to([airfoilObj.material, flowObj.material],
-                  { opacity: 0, duration: 0.5 }, "<");
+            tl.to([airfoilObj.material, flowObj.material], { opacity: 0, duration: 0.6 }, "<");
+            tl.to(airfoilCanvasEl, { opacity: 0, duration: 0.6 }, "<");
+            tl.to(fluidCanvasEl, { opacity: 1, duration: 0.6 }, "<0.1");
         } else {
-            // Return to airfoil mode
-            if (fluidCanvasEl) fluidCanvasEl.classList.remove('gpu-active');
-
-            tl.to([airfoilObj.material],
-                  { opacity: 0.5, duration: 0.5 });
-            tl.to([flowObj.material],
-                  { opacity: 0.6, duration: 0.5 }, "<");
-            tl.to(cam.position, { z: 7, duration: 1.0, ease: "power2.out" });
+            // Bring airfoil back, hide vortex field visually (still running)
+            tl.to(fluidCanvasEl, { opacity: 0, duration: 0.5 });
+            tl.to(airfoilCanvasEl, { opacity: 1, duration: 0.5 }, "<");
+            tl.to(airfoilObj.material, { opacity: 0.5, duration: 0.5 }, "<");
+            tl.to(flowObj.material, { opacity: 0.6, duration: 0.5 }, "<");
+            tl.to(cam.position, { z: 7, duration: 1.0, ease: "power2.out" }, "<");
         }
     };
 
-    // GSAP SCROLL / FADE-IN
+    // -------------------------------------------------
+    // 4. SCROLL-BASED INTERACTION
+    // -------------------------------------------------
     gsap.registerPlugin(ScrollTrigger);
+
     ScrollTrigger.create({
         trigger: "#page-content",
         start: "top top",
         end: "bottom bottom",
         scrub: 0.1,
         onUpdate: (self) => {
-            // Pitch from 0 to ~18 degrees
-            AirfoilSim.setAlpha(self.progress * 0.31);
+            if (window.currentSim === 'airfoil') {
+                // pitch airfoil
+                AirfoilSim.setAlpha(self.progress * 0.31);
+            } else if (window.currentSim === 'fluid') {
+                // scroll -> vortex intensity
+                if (window.VortexBackground && window.VortexBackground.setScrollFactor) {
+                    window.VortexBackground.setScrollFactor(self.progress);
+                }
+            }
         }
     });
 
     gsap.utils.toArray(".research-highlight").forEach(el => {
         gsap.to(el, {
-            scrollTrigger: {
-                trigger: el,
-                start: "top 70%",
-                end: "top 40%",
-                scrub: 1
-            },
+            scrollTrigger: { trigger: el, start: "top 70%", end: "top 40%", scrub: 1 },
             y: 0,
             opacity: 1
         });
     });
+
+    // -------------------------------------------------
+    // 5. GPU FULLSCREEN DEMO BUTTON
+    // -------------------------------------------------
+    const gpuBtn = document.getElementById('btn-gpu-fullscreen');
+    if (gpuBtn) {
+        gpuBtn.addEventListener('click', function() {
+            // Opens fullscreen Navier–Stokes demo (not branded as our solver)
+            window.location.href = 'gpu_solver.html';
+        });
+    }
 
 })();
 </script>
