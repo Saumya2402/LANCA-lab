@@ -338,7 +338,7 @@ title: Home
 
 </div>
 
-<!-- AIRFOIL + PAGE CONTROLLER -->
+<!-- AIRFOIL + PAGE CONTROLLER (UNCHANGED) -->
 <script>
 (function() {
 
@@ -562,335 +562,334 @@ title: Home
 })();
 </script>
 
-<!-- FLUID BACKGROUND ENGINE (lazy init, only for GPU Turbulence mode) -->
+<!-- FLUID BACKGROUND ENGINE (LANCA-branded, lazy init for GPU Turbulence) -->
 <script>
-(function() {
+(function () {
 
-    // This function is called once, the first time GPU Turbulence is selected.
-    window.initFluidBackground = function initFluidBackground() {
-        if (window.fluidInitialized) return;
-        window.fluidInitialized = true;
+  // Called once, first time "GPU Turbulence" is selected
+  window.initFluidBackground = function initFluidBackground() {
+    if (window.fluidInitialized) return;
+    window.fluidInitialized = true;
 
-        const canvas = document.getElementById('fluid-canvas');
-        if (!canvas) return;
+    const canvas = document.getElementById("fluid-canvas");
+    if (!canvas) return;
 
-        // Basic config (visual, not physical CFD)
-        const config = {
-            DENSITY_DISSIPATION: 1.0,
-            SPLAT_RADIUS: 0.25
-        };
+    const config = {
+      SPLAT_RADIUS: 0.22   // relative radius for splats
+    };
 
-        function scaleByPixelRatio(value) {
-            let ratio = window.devicePixelRatio || 1;
-            return Math.floor(value * ratio);
+    function scaleByPixelRatio(v) {
+      const r = window.devicePixelRatio || 1;
+      return Math.floor(v * r);
+    }
+
+    function resizeCanvas() {
+      const width  = scaleByPixelRatio(canvas.clientWidth  || window.innerWidth);
+      const height = scaleByPixelRatio(canvas.clientHeight || window.innerHeight);
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width  = width;
+        canvas.height = height;
+        return true;
+      }
+      return false;
+    }
+
+    // -------- WebGL setup --------
+    function getWebGLContext(canvas) {
+      const params = { alpha: true, depth: false, stencil: false, antialias: false };
+      let gl = canvas.getContext("webgl2", params);
+      if (!gl) gl = canvas.getContext("webgl", params) || canvas.getContext("experimental-webgl", params);
+      if (!gl) return null;
+      gl.clearColor(0, 0, 0, 1);
+      return gl;
+    }
+
+    const gl = getWebGLContext(canvas);
+    if (!gl) return;
+
+    // -------- Shader helpers --------
+    function compileShader(type, src) {
+      const sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      return sh;
+    }
+
+    function createProgram(vs, fs) {
+      const prog = gl.createProgram();
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      // ensure attribute location 0 is aPosition
+      gl.bindAttribLocation(prog, 0, "aPosition");
+      gl.linkProgram(prog);
+      return prog;
+    }
+
+    const baseVertexShader = compileShader(gl.VERTEX_SHADER, `
+      precision highp float;
+      attribute vec2 aPosition;
+      varying vec2 vUv;
+      void main () {
+        vUv = aPosition * 0.5 + 0.5;
+        gl_Position = vec4(aPosition, 0.0, 1.0);
+      }
+    `);
+
+    // LANCA-branded splat shader: blends maroon/gold ink into dye
+    const splatShader = compileShader(gl.FRAGMENT_SHADER, `
+      precision highp float;
+      varying vec2 vUv;
+      uniform sampler2D uTarget;
+      uniform float aspectRatio;
+      uniform vec3 color;
+      uniform vec2 point;
+      uniform float radius;
+
+      void main () {
+        vec2 p = vUv - point;
+        p.x *= aspectRatio;
+        float d = dot(p, p);
+        float falloff = exp(-d / radius);
+        vec3 splat = falloff * color;
+        vec3 base  = texture2D(uTarget, vUv).rgb;
+
+        // Slight nonlinearity to make bright cores and smooth edges
+        vec3 ink = base + splat;
+        ink = pow(ink, vec3(0.9));
+
+        gl_FragColor = vec4(ink, 1.0);
+      }
+    `);
+
+    const copyShader = compileShader(gl.FRAGMENT_SHADER, `
+      precision highp float;
+      varying vec2 vUv;
+      uniform sampler2D uTexture;
+      void main () {
+        vec3 c = texture2D(uTexture, vUv).rgb;
+        gl_FragColor = vec4(c, 1.0);
+      }
+    `);
+
+    function getUniforms(program) {
+      const uniforms = {};
+      const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+      for (let i = 0; i < count; i++) {
+        const info = gl.getActiveUniform(program, i);
+        uniforms[info.name] = gl.getUniformLocation(program, info.name);
+      }
+      return uniforms;
+    }
+
+    const copyProgram = (() => {
+      const p = createProgram(baseVertexShader, copyShader);
+      return { program: p, uniforms: getUniforms(p) };
+    })();
+
+    const splatProgram = (() => {
+      const p = createProgram(baseVertexShader, splatShader);
+      return { program: p, uniforms: getUniforms(p) };
+    })();
+
+    // -------- Fullscreen quad --------
+    const quadVBO = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadVBO);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        -1, -1,
+        -1,  1,
+         1,  1,
+        -1, -1,
+         1,  1,
+         1, -1
+      ]),
+      gl.STATIC_DRAW
+    );
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+    function blit(target) {
+      if (!target) {
+        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      } else {
+        gl.viewport(0, 0, target.width, target.height);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
+      }
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+
+    // -------- FBO helpers (UNSIGNED_BYTE RGBA for compatibility) --------
+    function createFBO(w, h) {
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        w,
+        h,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        null
+      );
+
+      const fbo = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+
+      return { fbo, texture: tex, width: w, height: h };
+    }
+
+    function createDoubleFBO(w, h) {
+      return {
+        read:  createFBO(w, h),
+        write: createFBO(w, h),
+        swap() {
+          const t = this.read;
+          this.read = this.write;
+          this.write = t;
         }
+      };
+    }
 
-        function resizeCanvas() {
-            const width = scaleByPixelRatio(canvas.clientWidth || window.innerWidth);
-            const height = scaleByPixelRatio(canvas.clientHeight || window.innerHeight);
-            if (canvas.width !== width || canvas.height !== height) {
-                canvas.width = width;
-                canvas.height = height;
-                return true;
-            }
-            return false;
-        }
+    let dye;
 
-        // ---- WebGL SETUP ----
-        function getWebGLContext(canvas) {
-            const params = { alpha: true, depth: false, stencil: false, antialias: false };
-            let gl = canvas.getContext("webgl2", params);
-            const isWebGL2 = !!gl;
-            if (!gl) {
-                gl = canvas.getContext("webgl", params) || canvas.getContext("experimental-webgl", params);
-            }
-            let halfFloat, supportLinear;
-            if (isWebGL2) {
-                gl.getExtension("EXT_color_buffer_float");
-                supportLinear = gl.getExtension("OES_texture_float_linear");
-            } else {
-                halfFloat = gl.getExtension("OES_texture_half_float");
-                supportLinear = gl.getExtension("OES_texture_half_float_linear");
-            }
-            gl.clearColor(0, 0, 0, 1);
-            return {
-                gl,
-                ext: {
-                    halfFloatTexType: isWebGL2 ? gl.HALF_FLOAT : (halfFloat ? halfFloat.HALF_FLOAT_OES : gl.UNSIGNED_BYTE),
-                    supportLinearFiltering: !!supportLinear
-                }
-            };
-        }
+    function initFramebuffers() {
+      const w = gl.drawingBufferWidth;
+      const h = gl.drawingBufferHeight;
+      dye = createDoubleFBO(w, h);
+    }
 
-        const { gl, ext } = getWebGLContext(canvas);
-        if (!gl) return;
+    resizeCanvas();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    initFramebuffers();
 
-        // ---- Shaders ----
-        function compileShader(type, source) {
-            const shader = gl.createShader(type);
-            gl.shaderSource(shader, source);
-            gl.compileShader(shader);
-            return shader;
-        }
-
-        function createProgram(vertex, fragment) {
-            const program = gl.createProgram();
-            gl.attachShader(program, vertex);
-            gl.attachShader(program, fragment);
-            gl.linkProgram(program);
-            return program;
-        }
-
-        const baseVertexShader = compileShader(gl.VERTEX_SHADER, `
-            precision highp float;
-            attribute vec2 aPosition;
-            varying vec2 vUv;
-            void main() {
-                vUv = aPosition * 0.5 + 0.5;
-                gl_Position = vec4(aPosition, 0.0, 1.0);
-            }
-        `);
-
-        // Simple splat shader (adds radial blobs into dye field)
-        const splatShader = compileShader(gl.FRAGMENT_SHADER, `
-            precision highp float;
-            varying vec2 vUv;
-            uniform sampler2D uTarget;
-            uniform float aspectRatio;
-            uniform vec3 color;
-            uniform vec2 point;
-            uniform float radius;
-
-            void main () {
-                vec2 p = vUv - point;
-                p.x *= aspectRatio;
-                float dist = dot(p,p);
-                vec3 splat = exp(-dist / radius) * color;
-                vec3 base = texture2D(uTarget, vUv).xyz;
-                gl_FragColor = vec4(base + splat, 1.0);
-            }
-        `);
-
-        const copyShader = compileShader(gl.FRAGMENT_SHADER, `
-            precision highp float;
-            varying vec2 vUv;
-            uniform sampler2D uTexture;
-            void main() {
-                gl_FragColor = texture2D(uTexture, vUv);
-            }
-        `);
-
-        function getUniforms(program) {
-            const uniforms = {};
-            const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-            for (let i = 0; i < count; i++) {
-                const name = gl.getActiveUniform(program, i).name;
-                uniforms[name] = gl.getUniformLocation(program, name);
-            }
-            return uniforms;
-        }
-
-        const copyProgram = (() => {
-            const p = createProgram(baseVertexShader, copyShader);
-            return { program: p, uniforms: getUniforms(p) };
-        })();
-
-        const splatProgram = (() => {
-            const p = createProgram(baseVertexShader, splatShader);
-            return { program: p, uniforms: getUniforms(p) };
-        })();
-
-        // Fullscreen quad
-        gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-            -1,-1, -1, 1, 1, 1,
-            -1,-1,  1, 1, 1,-1
-        ]), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
-        const indexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0,1,2, 3,4,5]), gl.STATIC_DRAW);
-
-        function blit(target) {
-            if (!target) {
-                gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            } else {
-                gl.viewport(0, 0, target.width, target.height);
-                gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
-            }
-            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-        }
-
-        function createFBO(w, h, internalFormat, format, type) {
-            const tex = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, tex);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, w, h, 0, format, type, null);
-
-            const fbo = gl.createFramebuffer();
-            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
-
-            return { fbo, texture: tex, width: w, height: h };
-        }
-
-        function createDoubleFBO(w, h) {
-            return {
-                read: createFBO(w, h, gl.RGBA, gl.RGBA, ext.halfFloatTexType),
-                write: createFBO(w, h, gl.RGBA, gl.RGBA, ext.halfFloatTexType),
-                swap() {
-                    const tmp = this.read;
-                    this.read = this.write;
-                    this.write = tmp;
-                }
-            };
-        }
-
-        let dye;
-
-        function initFramebuffers() {
-            const width = gl.drawingBufferWidth;
-            const height = gl.drawingBufferHeight;
-            dye = createDoubleFBO(width, height);
-        }
-
-        resizeCanvas();
+    window.addEventListener("resize", () => {
+      if (resizeCanvas()) {
         gl.viewport(0, 0, canvas.width, canvas.height);
         initFramebuffers();
+      }
+    });
 
-        window.addEventListener('resize', () => {
-            if (resizeCanvas()) {
-                gl.viewport(0, 0, canvas.width, canvas.height);
-                initFramebuffers();
-            }
-        });
+    // -------- Color palette: LANCA maroon + ASU gold + complements --------
+    function generateBrandColor() {
+      const palette = [
+        [140,  29,  64],  // maroon
+        [255, 198,  39],  // gold
+        [210, 120,  80],  // warm orange
+        [255, 235, 200]   // pale gold highlight
+      ];
+      const c = palette[Math.floor(Math.random() * palette.length)];
+      const k = 0.5 + 0.7 * Math.random(); // vary intensity
+      return {
+        r: (c[0] / 255) * k,
+        g: (c[1] / 255) * k,
+        b: (c[2] / 255) * k
+      };
+    }
 
-        function generateColor() {
-            const h = Math.random();
-            const s = 1.0;
-            const v = 1.0;
-            const i = Math.floor(h * 6.0);
-            const f = h * 6.0 - i;
-            const p = v * (1.0 - s);
-            const q = v * (1.0 - f * s);
-            const t = v * (1.0 - (1.0 - f) * s);
-            let r, g, b;
-            switch (i % 6) {
-                case 0: r = v; g = t; b = p; break;
-                case 1: r = q; g = v; b = p; break;
-                case 2: r = p; g = v; b = t; break;
-                case 3: r = p; g = q; b = v; break;
-                case 4: r = t; g = p; b = v; break;
-                case 5: r = v; g = p; b = q; break;
-            }
-            // darker, more “vorticity plot” style
-            return { r: r * 0.3, g: g * 0.3, b: b * 0.3 };
-        }
+    function splat(x, y, dx, dy, color) {
+      gl.useProgram(splatProgram.program);
+      gl.uniform1i(splatProgram.uniforms.uTarget, 0);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, dye.read.texture);
 
-        function splat(x, y, dx, dy, color) {
-            gl.useProgram(splatProgram.program);
-            gl.uniform1i(splatProgram.uniforms.uTarget, 0);
+      gl.uniform1f(splatProgram.uniforms.aspectRatio, canvas.width / canvas.height);
+      gl.uniform2f(splatProgram.uniforms.point, x, y);
 
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, dye.read.texture);
+      // first pass: velocity-tinted core (subtle)
+      gl.uniform3f(
+        splatProgram.uniforms.color,
+        dx * 0.00003,
+        dy * 0.00003,
+        0.0
+      );
+      gl.uniform1f(splatProgram.uniforms.radius, config.SPLAT_RADIUS * 0.6);
+      blit(dye.write);
+      dye.swap();
 
-            gl.uniform1f(splatProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-            gl.uniform2f(splatProgram.uniforms.point, x, y);
+      // second pass: LANCA brand color shell
+      gl.useProgram(splatProgram.program);
+      gl.uniform1i(splatProgram.uniforms.uTarget, 0);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, dye.read.texture);
+      gl.uniform1f(splatProgram.uniforms.aspectRatio, canvas.width / canvas.height);
+      gl.uniform2f(splatProgram.uniforms.point, x, y);
+      gl.uniform3f(
+        splatProgram.uniforms.color,
+        color.r * 2.2,
+        color.g * 2.2,
+        color.b * 2.2
+      );
+      gl.uniform1f(splatProgram.uniforms.radius, config.SPLAT_RADIUS);
+      blit(dye.write);
+      dye.swap();
+    }
 
-            // velocity-ish tint
-            gl.uniform3f(
-                splatProgram.uniforms.color,
-                dx * 0.00005,
-                dy * 0.00005,
-                0.0
-            );
-            gl.uniform1f(splatProgram.uniforms.radius, config.SPLAT_RADIUS);
+    function randomSplats(n) {
+      for (let i = 0; i < n; i++) {
+        const x  = Math.random();
+        const y  = Math.random();
+        const dx = (Math.random() - 0.5) * 2200;
+        const dy = (Math.random() - 0.5) * 2200;
+        splat(x, y, dx, dy, generateBrandColor());
+      }
+    }
 
-            blit(dye.write);
-            dye.swap();
+    // initial vortices when GPU mode first enabled
+    randomSplats(8);
 
-            // color splat
-            gl.useProgram(splatProgram.program);
-            gl.uniform1i(splatProgram.uniforms.uTarget, 0);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, dye.read.texture);
-            gl.uniform1f(splatProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-            gl.uniform2f(splatProgram.uniforms.point, x, y);
-            gl.uniform3f(
-                splatProgram.uniforms.color,
-                color.r * 2.5,
-                color.g * 2.5,
-                color.b * 2.5
-            );
-            gl.uniform1f(splatProgram.uniforms.radius, config.SPLAT_RADIUS * 0.8);
+    // -------- render loop --------
+    function render() {
+      requestAnimationFrame(render);
+      if (!window.fluidActive) return;
 
-            blit(dye.write);
-            dye.swap();
-        }
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      gl.useProgram(copyProgram.program);
+      gl.uniform1i(copyProgram.uniforms.uTexture, 0);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, dye.read.texture);
+      blit(null);
+    }
+    requestAnimationFrame(render);
 
-        function randomSplats(n) {
-            for (let i = 0; i < n; i++) {
-                const x = Math.random();
-                const y = Math.random();
-                const dx = (Math.random() - 0.5) * 2000;
-                const dy = (Math.random() - 0.5) * 2000;
-                splat(x, y, dx, dy, generateColor());
-            }
-        }
+    // -------- scroll → splat intensity --------
+    let lastScroll = window.scrollY || 0;
+    let splatStack = [];
 
-        // Initial vortices when user first enters GPU mode
-        randomSplats(6);
+    window.addEventListener("scroll", () => {
+      if (!window.fluidActive) return;
+      const current = window.scrollY || 0;
+      const dy = Math.abs(current - lastScroll);
+      lastScroll = current;
+      const intensity = Math.min(24, dy * 0.12);
+      if (intensity > 0.6) {
+        splatStack.push(intensity);
+      }
+    });
 
-        // Render loop – just draw current dye to screen
-        function render() {
-            requestAnimationFrame(render);
-            if (!window.fluidActive) return;
+    // apply queued splats every 200 ms
+    setInterval(() => {
+      if (!window.fluidActive) return;
+      if (splatStack.length > 0) {
+        const amt = Math.ceil(splatStack.pop());
+        randomSplats(amt);
+      }
+    }, 200);
 
-            gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-            gl.useProgram(copyProgram.program);
-            gl.uniform1i(copyProgram.uniforms.uTexture, 0);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, dye.read.texture);
-            blit(null);
-        }
-        requestAnimationFrame(render);
-
-        // Scroll → turbulence seeding
-        let lastScroll = window.scrollY || 0;
-        let splatStack = [];
-
-        window.addEventListener("scroll", () => {
-            if (!window.fluidActive) return;
-            const current = window.scrollY || 0;
-            const dy = Math.abs(current - lastScroll);
-            lastScroll = current;
-            const intensity = Math.min(20, dy * 0.1);
-            if (intensity > 0.5) {
-                splatStack.push(intensity);
-            }
-        });
-
-        // Apply queued splats every 200 ms
-        setInterval(() => {
-            if (!window.fluidActive) return;
-            if (splatStack.length > 0) {
-                const amt = Math.ceil(splatStack.pop());
-                randomSplats(amt);
-            }
-        }, 200);
-
-        // Gentle background activity to keep vortices alive
-        setInterval(() => {
-            if (!window.fluidActive) return;
-            randomSplats(2);
-        }, 1500);
-    };
+    // gentle background motion to keep vortices alive
+    setInterval(() => {
+      if (!window.fluidActive) return;
+      randomSplats(2);
+    }, 1500);
+  };
 
 })();
 </script>
