@@ -80,7 +80,6 @@ title: Home
         pointer-events: auto;
         opacity: 0;
         transform: translateY(50px);
-        margin-bottom: 10vh; /* Spacing between boxes */
     }
 
     .research-highlight h2 {
@@ -88,26 +87,6 @@ title: Home
         margin: 0 0 1rem 0;
         font-family: 'Oswald', sans-serif;
         color: #fff;
-    }
-
-    /* GPU Box Specific Style */
-    .gpu-box {
-        margin-left: auto; /* Align right */
-        border-left: none;
-        border-right: 6px solid #FFC627; /* Gold accent */
-        text-align: right;
-    }
-
-    .gpu-tag {
-        display: inline-block;
-        background: linear-gradient(45deg, #8C1D40, #FFC627);
-        color: white;
-        padding: 4px 12px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: bold;
-        margin-bottom: 15px;
-        letter-spacing: 1px;
     }
 
     /* --- AIRFOIL COMPARISON SECTION --- */
@@ -189,7 +168,6 @@ title: Home
 
     @media (max-width: 768px) {
         .lab-title-block h1 { font-size: 3.5rem; }
-        .research-highlight { margin-left: 0; text-align: left; border-right: none; border-left: 6px solid #FFC627; }
     }
 </style>
 
@@ -213,11 +191,11 @@ title: Home
         </div>
     </section>
 
-    <!-- SECTION 2: AIRFOIL RESEARCH -->
+    <!-- SECTION 2: HIGHLIGHT -->
     <section class="scroll-section" id="section-highlight">
         <div class="research-highlight">
             <div style="text-transform: uppercase; color: #FFC627; font-weight: 700; margin-bottom: 10px; font-size: 0.9rem; letter-spacing: 1px;">
-                Fundamental Research
+                Research Focus
             </div>
             <h2>Trailing Edge Geometry</h2>
             <p>
@@ -229,26 +207,7 @@ title: Home
         </div>
     </section>
 
-    <!-- SECTION 3: GPU RESEARCH (NEW) -->
-    <section class="scroll-section" id="section-gpu">
-        <div class="research-highlight gpu-box">
-            <div class="gpu-tag">GPU ACCELERATION + AI</div>
-            <div style="text-transform: uppercase; color: #FFC627; font-weight: 700; margin-bottom: 10px; font-size: 0.9rem; letter-spacing: 1px; margin-top:5px;">
-                Computational Research
-            </div>
-            <h2>GPU Accelerated Simulation</h2>
-            <p>
-                We enhance low-resolution unsteady flows (e.g., Taylor–Green vortex on 128³ grids) using a 
-                <strong>3D Attention-Augmented U-Net</strong>.
-            </p>
-            <p style="margin-top: 1rem;">
-                This data-driven super-resolution model reconstructs fine-scale vorticity fields comparable to 
-                high-fidelity Remeshed Vortex Methods (RVM), enabling rapid modeling of turbulent structures.
-            </p>
-        </div>
-    </section>
-
-    <!-- SECTION 4: GEOMETRY COMPARISON -->
+    <!-- SECTION 3: GEOMETRY COMPARISON -->
     <section id="geometry-section">
         <div class="section-header">
             <h3>The Round Trailing Edge Family</h3>
@@ -262,6 +221,7 @@ title: Home
             <!-- Ratio 1 -->
             <div class="ratio-card">
                 <div class="ratio-img-placeholder">
+                    <!-- Ensure you upload ratio1.png to assets/images/ -->
                     <img src="assets/images/ratio1.png" onerror="this.src='https://via.placeholder.com/400x300?text=Ratio+1+(Blunt)'" alt="Ratio 1 Airfoil">
                 </div>
                 <div class="ratio-title">Ratio 1:12 (Blunt)</div>
@@ -312,10 +272,8 @@ title: Home
     scene.fog = new THREE.FogExp2(0x050505, 0.05);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    // Move camera back to avoid "Zoomed In" feel
-    camera.position.z = 7.0; 
-    
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    
     const container = document.getElementById('webgl-container');
     if(container) {
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -323,42 +281,41 @@ title: Home
         container.appendChild(renderer.domElement);
     }
 
-    // --- 2. JOUKOWSKI AIRFOIL GENERATION (Exact MATLAB Port) ---
-    
-    // Parameters tuned for symmetric NACA 0012 approximation
-    const chord = 1.0;
-    const b = chord / 4.0; 
-    const max_thickness = 0.12;
-    const e = max_thickness / 1.3; 
-    const beta = 0; // Symmetric
-    
-    const a = b * (1 + e) / Math.cos(beta); // Circle radius
-    const mu_x = -b * e; 
-    const mu_y = a * beta; 
-
-    // Generate Shape Points
-    const airfoilShape = new THREE.Shape();
-    const steps = 120;
-    
-    for(let i = 0; i <= steps; i++) {
-        const theta = (i / steps) * Math.PI * 2;
-        
-        // 1. Point on Cylinder (Zeta plane)
-        const zeta_x = mu_x + a * Math.cos(theta);
-        const zeta_y = mu_y + a * Math.sin(theta);
-        
-        // 2. Joukowski Transform
-        const denom = zeta_x*zeta_x + zeta_y*zeta_y;
-        const z_x = zeta_x * (1 + (b*b)/denom);
-        const z_y = zeta_y * (1 - (b*b)/denom);
-        
-        if(i === 0) airfoilShape.moveTo(z_x, z_y);
-        else airfoilShape.lineTo(z_x, z_y);
+    // --- 2. GEOMETRY: NACA 0012 ---
+    // Accurate NACA 4-digit thickness function
+    function naca0012_thick(x) {
+        if(x < 0 || x > 1) return 0;
+        return 0.6 * (0.2969 * Math.sqrt(x) - 0.1260 * x - 0.3516 * x*x + 0.2843 * x*x*x - 0.1015 * x*x*x*x);
     }
 
-    const geometry = new THREE.ExtrudeGeometry(airfoilShape, { depth: 0.2, bevelEnabled: false });
-    geometry.center(); 
+    // Derivative for slope calculation (dy/dx)
+    // Used for flow deflection physics
+    function naca0012_slope(x) {
+        if(x <= 0.001) return 10; // Avoid infinity, cap slope at nose
+        if(x > 1) return 0;
+        // dy/dx of the thickness function
+        return 0.6 * (0.14845/Math.sqrt(x) - 0.1260 - 0.7032*x + 0.8529*x*x - 0.406*x*x*x);
+    }
 
+    const airfoilShape = new THREE.Shape();
+    const steps = 150; // Higher res for smooth nose
+    
+    for(let i = 0; i <= steps; i++) {
+        const x = i / steps;
+        const y = naca0012_thick(x);
+        if(i === 0) airfoilShape.moveTo(x - 0.5, y);
+        else airfoilShape.lineTo(x - 0.5, y);
+    }
+    for(let i = steps; i >= 0; i--) {
+        const x = i / steps;
+        const y = -naca0012_thick(x);
+        airfoilShape.lineTo(x - 0.5, y);
+    }
+
+    const geometry = new THREE.ExtrudeGeometry(airfoilShape, { depth: 0.4, bevelEnabled: false });
+    geometry.center();
+
+    // Wireframe Material
     const material = new THREE.MeshBasicMaterial({ 
         color: 0x8C1D40, 
         wireframe: true,
@@ -367,29 +324,33 @@ title: Home
     });
     const airfoil = new THREE.Mesh(geometry, material);
     
+    // Solid Core (Black)
     const core = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 0x050505 }));
     core.scale.set(0.99, 0.99, 1);
     airfoil.add(core);
+    
     scene.add(airfoil);
 
-    // --- 3. STREAMLINES ---
-    const lineCount = 60;
-    const particlesPerLine = 60;
+    // --- 3. STREAMLINES (Potential Flow Logic) ---
+    const lineCount = 50;
+    const particlesPerLine = 80;
     const particleGeo = new THREE.BufferGeometry();
     const positions = [];
     const pState = []; 
 
     for(let i = 0; i < lineCount; i++) {
-        let yNorm = (i / (lineCount-1)) * 2 - 1; 
-        const yStart = Math.sign(yNorm) * Math.pow(Math.abs(yNorm), 1.1) * 4.0;
+        // Distribute lines: Cluster near center for detail, spread far for context
+        let yNorm = (i / (lineCount-1)) * 2 - 1; // -1 to 1
+        const yStart = Math.sign(yNorm) * Math.pow(Math.abs(yNorm), 1.3) * 2.5;
         
         for(let j = 0; j < particlesPerLine; j++) {
-            const xStart = (j / particlesPerLine) * 20 - 10;
+            // Start further upstream to allow flow to develop
+            const xStart = (j / particlesPerLine) * 16 - 8;
             positions.push(xStart, yStart, 0);
             pState.push({
                 x: xStart,
-                y: yStart,
-                speed: 0.05 
+                yInit: yStart, // The "Lane" ID
+                baseSpeed: 0.05 + Math.random() * 0.01,
             });
         }
     }
@@ -397,150 +358,96 @@ title: Home
     particleGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     const flowField = new THREE.Points(particleGeo, new THREE.PointsMaterial({
         color: 0xFFC627,
-        size: 0.035,
+        size: 0.045,
         transparent: true,
-        opacity: 0.6
+        opacity: 0.7
     }));
     scene.add(flowField);
 
 
-    // --- 4. EXACT PHYSICS SOLVER (Complex Potential) ---
-    
-    let alpha = 0; 
-    const V_inf = 0.08; 
-
-    function getExactVelocity(z_x, z_y, alphaVal) {
-        
-        // A. Inverse Joukowski
-        const halfZ_x = z_x / 2;
-        const halfZ_y = z_y / 2;
-        
-        const sqTerm_x = (halfZ_x*halfZ_x - halfZ_y*halfZ_y) - b*b;
-        const sqTerm_y = 2 * halfZ_x * halfZ_y;
-        
-        const r_val = Math.sqrt(sqTerm_x*sqTerm_x + sqTerm_y*sqTerm_y);
-        const r_sqrt = Math.sqrt(r_val);
-        const phi = Math.atan2(sqTerm_y, sqTerm_x);
-        
-        const root_x = r_sqrt * Math.cos(phi/2);
-        const root_y = r_sqrt * Math.sin(phi/2);
-        
-        // Pick exterior root
-        const z1_x = halfZ_x + root_x;
-        const z1_y = halfZ_y + root_y;
-        const z2_x = halfZ_x - root_x;
-        const z2_y = halfZ_y - root_y;
-        
-        const mag1 = z1_x*z1_x + z1_y*z1_y;
-        const mag2 = z2_x*z2_x + z2_y*z2_y;
-        
-        let zeta_x, zeta_y;
-        if (mag1 > mag2) { zeta_x = z1_x; zeta_y = z1_y; }
-        else { zeta_x = z2_x; zeta_y = z2_y; }
-
-        // B. Calculate Velocity in Circle Plane
-        const Z_x = zeta_x - mu_x;
-        const Z_y = zeta_y - mu_y;
-        
-        // Rotate input coords by -alpha (to align flow horizontally)
-        const cosMa = Math.cos(-alphaVal);
-        const sinMa = Math.sin(-alphaVal);
-        
-        const Zr_x = Z_x * cosMa - Z_y * sinMa;
-        const Zr_y = Z_x * sinMa + Z_y * cosMa;
-        
-        // Cylinder Flow: V(1 - a^2/Z^2)
-        const Zr2_x = Zr_x*Zr_x - Zr_y*Zr_y;
-        const Zr2_y = 2*Zr_x*Zr_y;
-        const modZr4 = Zr2_x*Zr2_x + Zr2_y*Zr2_y;
-        
-        if(modZr4 < 0.00001) return {u: 0, v: 0};
-
-        const invZr2_x = Zr2_x / modZr4;
-        const invZr2_y = -Zr2_y / modZr4;
-        
-        let dWdZ_x = V_inf * (1 - a*a * invZr2_x);
-        let dWdZ_y = V_inf * (0 - a*a * invZr2_y);
-        
-        // Circulation Term (Kutta Condition)
-        const Gamma = 4 * Math.PI * V_inf * a * Math.sin(alphaVal + beta);
-        
-        // i * Gamma / 2pi * (1/Zr)
-        const modZr2 = Zr_x*Zr_x + Zr_y*Zr_y;
-        const factor = Gamma / (2 * Math.PI * modZr2);
-        
-        dWdZ_x += factor * (-Zr_y); 
-        dWdZ_y += factor * (Zr_x);   // +i * (x - iy) = ix + y = y + ix
-        
-        // Rotate Velocity Vector Back: * e^(-i alpha)
-        // V_zeta = V_rot * (cos(-a) + i sin(-a))
-        const V_zeta_x = dWdZ_x * cosMa - dWdZ_y * sinMa;
-        const V_zeta_y = dWdZ_x * sinMa + dWdZ_y * cosMa;
-        
-        // C. Map to Physical Plane: / (dz/dzeta)
-        const zetaSq_x = zeta_x*zeta_x - zeta_y*zeta_y;
-        const zetaSq_y = 2*zeta_x*zeta_y;
-        const modZeta4 = zetaSq_x*zetaSq_x + zetaSq_y*zetaSq_y;
-        
-        const invZetaSq_x = zetaSq_x / modZeta4; 
-        const invZetaSq_y = -zetaSq_y / modZeta4; 
-        
-        const dZdzeta_x = 1 - b*b * invZetaSq_x;
-        const dZdzeta_y = 0 - b*b * invZetaSq_y;
-        
-        const denom = dZdzeta_x*dZdzeta_x + dZdzeta_y*dZdzeta_y;
-        
-        if(denom < 0.001) return {u: V_inf, v: 0}; // TE Singularity guard
-
-        // Complex Division
-        const u_phy = (V_zeta_x * dZdzeta_x + V_zeta_y * dZdzeta_y) / denom;
-        const v_phy = (V_zeta_y * dZdzeta_x - V_zeta_x * dZdzeta_y) / denom;
-        
-        // Conjugate velocity -> (u, -v)
-        return { u: u_phy, v: -v_phy };
-    }
+    // --- 4. ANIMATION LOOP ---
+    let aoa = 0; 
+    camera.position.z = 4.5;
 
     function animate() {
         requestAnimationFrame(animate);
 
         // Pitch Airfoil
-        airfoil.rotation.z = THREE.MathUtils.lerp(airfoil.rotation.z, -alpha, 0.1);
+        airfoil.rotation.z = THREE.MathUtils.lerp(airfoil.rotation.z, -aoa, 0.1);
 
         const posArr = flowField.geometry.attributes.position.array;
         
-        const cosRot = Math.cos(-alpha);
-        const sinRot = Math.sin(-alpha);
-
         for(let i = 0; i < pState.length; i++) {
             const p = pState[i];
             
-            // 1. Transform World Point -> Airfoil Local Frame
-            // Rotate by +Alpha (inverse of mesh rotation)
-            const ax = p.x * cosRot + p.y * sinRot; 
-            const ay = -p.x * sinRot + p.y * cosRot; // Note: cos(-a)=cos(a), sin(-a)=-sin(a)
-            
-            // 2. Get Velocity in Airfoil Frame
-            let vel = getExactVelocity(ax, ay, alpha);
-            
-            if(isNaN(vel.u) || isNaN(vel.v)) vel = {u: V_inf, v: 0};
+            // 1. Move Particle in "Wind Tunnel Frame" (Pure X motion)
+            p.x += p.baseSpeed;
+            if(p.x > 8) p.x = -8;
 
-            // 3. Rotate Velocity -> World Frame
-            // Rotate vector by -Alpha
-            const worldU = vel.u * cosRot - vel.v * sinRot;
-            const worldV = vel.u * sinRot + vel.v * cosRot;
+            // 2. ANALYTICAL FLOW SOLVER (Approximate)
+            // We want to calculate the Y-deflection at the current X
             
-            // 4. Update
-            p.x += worldU * 1.5; 
-            p.y += worldV * 1.5;
+            // Relative coordinates to LE (Leading Edge at -0.5)
+            const xRel = p.x - (-0.5); 
             
-            // 5. Loop
-            if(p.x > 10 || Math.abs(p.y) > 6) {
-                p.x = -10;
-                p.y = (Math.random() - 0.5) * 7;
+            let yDeflection = 0;
+            let xDeflection = 0;
+
+            // A. NOSE SINGULARITY (Source Flow)
+            // If near the nose (xRel ~ 0), push hard radially
+            const rSq = xRel*xRel + p.yInit*p.yInit;
+            if (rSq < 1.0) {
+                // Source strength decays with distance
+                const strength = 0.08 / (rSq + 0.1);
+                // Push vector (x, y)
+                xDeflection -= strength * xRel; // Slow down approaching nose
+                yDeflection += strength * p.yInit; // Push Up/Down
             }
 
-            posArr[i*3] = p.x;
-            posArr[i*3+1] = p.y;
+            // B. THICKNESS DISPLACEMENT (Body effect)
+            // If we are downstream of nose (xRel > 0)
+            if (xRel > 0 && xRel < 1.2) { // Airfoil chord is length 1
+                 // Get slope of airfoil at this X
+                 // Clamp X to 0-1 for lookup
+                 const xClamped = Math.max(0, Math.min(1, xRel));
+                 const halfThick = naca0012_thick(xClamped);
+                 
+                 // If particle is "blocked" by thickness or near it
+                 // We push it out to at least thickness + boundary layer
+                 const limit = halfThick + 0.05;
+                 
+                 // Smooth blend: Only affect particles near the centerline
+                 if(Math.abs(p.yInit) < 0.8) {
+                     // Direction to push (Up or Down based on lane)
+                     const sign = Math.sign(p.yInit);
+                     
+                     // Current 'undisturbed' distance from centerline
+                     const currentDist = Math.abs(p.yInit + yDeflection);
+                     
+                     if (currentDist < limit) {
+                         // Push it out to the limit
+                         yDeflection += (limit - currentDist) * sign;
+                     }
+                 }
+            }
+
+            // C. ANGLE OF ATTACK ROTATION
+            // We rotate the entire particle field AROUND the pivot (0,0)
+            // to match the airfoil pitching.
+            // Formula: 
+            // x' = x*cos(a) - y*sin(a)
+            // y' = x*sin(a) + y*cos(a)
+            
+            // Note: We use -aoa because in Three.js +Z rotation is CCW
+            
+            const currentX = p.x + xDeflection;
+            const currentY = p.yInit + yDeflection;
+
+            const rotX = currentX * Math.cos(-aoa) - currentY * Math.sin(-aoa);
+            const rotY = currentX * Math.sin(-aoa) + currentY * Math.cos(-aoa);
+
+            posArr[i*3] = rotX;
+            posArr[i*3+1] = rotY;
             posArr[i*3+2] = 0;
         }
         
@@ -559,27 +466,14 @@ title: Home
         end: "bottom bottom",
         scrub: 0.1,
         onUpdate: (self) => {
-            // Pitch from 0 to 18 degrees (0.31 rad)
-            alpha = self.progress * 0.31;
+            // Pitch from 0 to 18 degrees (approx 0.3 rads)
+            aoa = self.progress * 0.3;
         }
     });
     
-    // Highlight 1 (Airfoil)
-    gsap.to("#section-highlight .research-highlight", {
+    gsap.to(".research-highlight", {
         scrollTrigger: {
             trigger: "#section-highlight",
-            start: "top 70%",
-            end: "top 40%",
-            scrub: 1
-        },
-        y: 0,
-        opacity: 1
-    });
-
-    // Highlight 2 (GPU - NEW)
-    gsap.to("#section-gpu .research-highlight", {
-        scrollTrigger: {
-            trigger: "#section-gpu",
             start: "top 70%",
             end: "top 40%",
             scrub: 1
