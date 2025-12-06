@@ -50,7 +50,7 @@ title: Home
         opacity: 0;
         transition: opacity 0.8s ease;
         display: block;
-        background: #000; /* ensure deep black background */
+        background: #000; /* deep black background */
     }
 
     /* --- UI CONTROLS --- */
@@ -514,7 +514,6 @@ title: Home
         const scrollTextEl = document.getElementById('scroll-text');
 
         if(mode === 'fluid') {
-            // Lazy-init fluid engine
             if (!window.fluidInitialized && window.initFluidBackground) {
                 window.initFluidBackground();
             }
@@ -522,13 +521,11 @@ title: Home
 
             if (scrollTextEl) scrollTextEl.textContent = 'Scroll to Move Vortices';
 
-            // Camera pull-back & fade out airfoil, fade in fluid
             tl.to(cam.position, { z: 20, duration: 0.8, ease: "power2.in" });
             tl.to([airfoilObj.material, flowObj.material], { opacity: 0, duration: 0.5 });
             tl.to(airfoilCanvasEl, { opacity: 0, duration: 0.6 }, "<");
             tl.to(fluidCanvasEl, { opacity: 1, duration: 0.8 }, "<");
         } else {
-            // Return to airfoil mode
             window.fluidActive = false;
             if (scrollTextEl) scrollTextEl.textContent = 'Scroll to Pitch Airfoil';
 
@@ -548,7 +545,6 @@ title: Home
         end: "bottom bottom",
         scrub: 0.1,
         onUpdate: (self) => {
-            // Pitch from 0 to ~18 degrees
             AirfoilSim.setAlpha(self.progress * 0.31);
         }
     });
@@ -567,7 +563,6 @@ title: Home
 <script>
 (function () {
 
-  // Called once, first time "GPU Turbulence" is selected
   window.initFluidBackground = function initFluidBackground() {
     if (window.fluidInitialized) return;
     window.fluidInitialized = true;
@@ -576,11 +571,11 @@ title: Home
     if (!canvas) return;
 
     const config = {
-      SIM_RES: 128,           // base simulation resolution (square grid)
-      DYE_DISSIPATION: 0.995, // 1.0 = no fade, smaller = faster fade
+      SIM_RES: 128,
+      DYE_DISSIPATION: 0.995,
       VEL_DISSIPATION: 0.999,
       PRESSURE_ITER: 15,
-      CURL: 30.0,             // vorticity confinement strength
+      CURL: 30.0,
       SPLAT_RADIUS: 0.015,
       TIME_STEP: 0.016
     };
@@ -596,7 +591,6 @@ title: Home
     const gl = getWebGLContext(canvas);
     if (!gl) return;
 
-    // ---------- helpers ----------
     function compileShader(type, source) {
       const sh = gl.createShader(type);
       gl.shaderSource(sh, source);
@@ -635,7 +629,7 @@ title: Home
       return uniforms;
     }
 
-    // ---------- full screen quad ----------
+    /* fullscreen quad */
     const quadVBO = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, quadVBO);
     gl.bufferData(
@@ -664,7 +658,6 @@ title: Home
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 
-    // ---------- FBO helpers (RGBA 8-bit, encode velocity/scalars in 0..1) ----------
     function createFBO(width, height) {
       const tex = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -697,9 +690,8 @@ title: Home
       };
     }
 
-    // ---------- shaders (Navier–Stokes pipeline) ----------
+    /* shaders */
 
-    // Advection: semi-Lagrangian
     const advectProgram = (() => {
       const fs = `
         precision highp float;
@@ -710,9 +702,7 @@ title: Home
         uniform float dt;
         uniform float dissipation;
 
-        // velocity is stored in 0..1, map to −1..1
         vec2 decodeVel(vec2 v) { return v * 2.0 - 1.0; }
-        vec2 encodeVel(vec2 v) { return v * 0.5 + 0.5; }
 
         void main() {
           vec2 vel = decodeVel(texture2D(uVelocity, vUv).xy);
@@ -726,7 +716,6 @@ title: Home
       return { program: prog, uniforms: getUniforms(prog) };
     })();
 
-    // Compute curl (scalar vorticity)
     const curlProgram = (() => {
       const fs = `
         precision highp float;
@@ -751,7 +740,6 @@ title: Home
       return { program: prog, uniforms: getUniforms(prog) };
     })();
 
-    // Vorticity confinement: adds swirling force
     const vorticityProgram = (() => {
       const fs = `
         precision highp float;
@@ -764,7 +752,6 @@ title: Home
 
         vec2 decodeVel(vec2 v) { return v * 2.0 - 1.0; }
         vec2 encodeVel(vec2 v) { return v * 0.5 + 0.5; }
-
         float decodeScalar(vec4 c) { return (c.r - 0.5) * 2.0; }
 
         void main() {
@@ -790,7 +777,6 @@ title: Home
       return { program: prog, uniforms: getUniforms(prog) };
     })();
 
-    // Divergence of velocity (for pressure solve)
     const divergenceProgram = (() => {
       const fs = `
         precision highp float;
@@ -815,7 +801,6 @@ title: Home
       return { program: prog, uniforms: getUniforms(prog) };
     })();
 
-    // Jacobi iteration for pressure solve
     const pressureProgram = (() => {
       const fs = `
         precision highp float;
@@ -832,10 +817,7 @@ title: Home
           float R = decodeScalar(texture2D(uPressure, vUv + vec2(texelSize.x, 0.0)));
           float B = decodeScalar(texture2D(uPressure, vUv - vec2(0.0, texelSize.y)));
           float T = decodeScalar(texture2D(uPressure, vUv + vec2(0.0, texelSize.y)));
-          float C = decodeScalar(texture2D(uPressure, vUv));
-
           float div = decodeScalar(texture2D(uDivergence, vUv));
-
           float pressure = (L + R + B + T - div) * 0.25;
           gl_FragColor = encodeScalar(pressure);
         }
@@ -844,7 +826,6 @@ title: Home
       return { program: prog, uniforms: getUniforms(prog) };
     })();
 
-    // Subtract pressure gradient from velocity
     const gradientSubtractProgram = (() => {
       const fs = `
         precision highp float;
@@ -874,7 +855,6 @@ title: Home
       return { program: prog, uniforms: getUniforms(prog) };
     })();
 
-    // Splat: inject dye + velocity at a point
     const splatProgram = (() => {
       const fs = `
         precision highp float;
@@ -891,7 +871,6 @@ title: Home
 
         void main() {
           vec4 base = texture2D(uTarget, vUv);
-
           vec2 p = vUv - point;
           float d = dot(p, p);
           float falloff = exp(-d / radius);
@@ -910,7 +889,6 @@ title: Home
       return { program: prog, uniforms: getUniforms(prog) };
     })();
 
-    // Copy dye to screen
     const displayProgram = (() => {
       const fs = `
         precision highp float;
@@ -925,12 +903,13 @@ title: Home
       return { program: prog, uniforms: getUniforms(prog) };
     })();
 
-    // ---------- Resize + FBO allocation ----------
-    let simWidth, simHeight;
+    /* framebuffers and resizing */
+
     let velocity, dye, pressure, divergence, curl;
 
     function initFramebuffers() {
       const aspect = canvas.clientWidth / canvas.clientHeight;
+      let simWidth, simHeight;
       if (aspect > 1) {
         simWidth  = config.SIM_RES;
         simHeight = Math.floor(config.SIM_RES / aspect);
@@ -961,7 +940,8 @@ title: Home
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // ---------- Brand color palette (LANCA / ASU) ----------
+    /* LANCA color palette */
+
     function randRange(a, b) { return a + Math.random() * (b - a); }
 
     function sampleLancaColor(upperLayer) {
@@ -987,7 +967,8 @@ title: Home
       }
     }
 
-    // ---------- splat helpers ----------
+    /* splat helpers */
+
     function splatFBO(target, point, radius, color, force, isVelocity) {
       gl.useProgram(splatProgram.program);
       gl.uniform2f(splatProgram.uniforms.point, point[0], point[1]);
@@ -1011,45 +992,54 @@ title: Home
       splatFBO(dye, point, config.SPLAT_RADIUS * 2.0, color, [0,0], false);
     }
 
-    // Seed initial Kelvin–Helmholtz shear layer
+    /* seed Kelvin–Helmholtz shear layer */
+
     function seedShearLayer() {
-      const N = 18;
+      const N = 20;
       for (let i = 0; i < N; i++) {
-        const x = (i + Math.random()*0.5) / N * 0.4;
-        const yTop = 0.30 + randRange(-0.02, 0.02);
-        const yBot = 0.55 + randRange(-0.02, 0.02);
+        const x = 0.1 + 0.8 * Math.random();
+        const yTop = 0.35 + 0.02 * (Math.random() - 0.5);
+        const yBot = 0.60 + 0.02 * (Math.random() - 0.5);
 
         const cTop = sampleLancaColor(true);
         const cBot = sampleLancaColor(false);
 
-        splatVelocity([x, yTop], [ 40.0, 0.0]);
-        splatVelocity([x, yBot], [-40.0, 0.0]);
+        const ptTop = [x, 1.0 - yTop];  /* flip y for visual top */
+        const ptBot = [x, 1.0 - yBot];
 
-        splatDye([x, yTop], cTop);
-        splatDye([x, yBot], cBot);
+        splatVelocity(ptTop, [ 40.0, 0.0]);
+        splatVelocity(ptBot, [-40.0, 0.0]);
+
+        splatDye(ptTop, cTop);
+        splatDye(ptBot, cBot);
       }
     }
 
     seedShearLayer();
 
-    // occasionally reinject shear to keep vortices entering
+    /* occasional reinjection */
+
     setInterval(() => {
       if (!window.fluidActive) return;
       const x = randRange(0.05, 0.25);
-      const yTop = 0.30 + randRange(-0.03, 0.03);
-      const yBot = 0.55 + randRange(-0.03, 0.03);
+      const yTop = 0.35 + randRange(-0.03, 0.03);
+      const yBot = 0.60 + randRange(-0.03, 0.03);
 
       const cTop = sampleLancaColor(true);
       const cBot = sampleLancaColor(false);
 
-      splatVelocity([x, yTop], [ 40.0, 0.0]);
-      splatVelocity([x, yBot], [-40.0, 0.0]);
+      const ptTop = [x, 1.0 - yTop];
+      const ptBot = [x, 1.0 - yBot];
 
-      splatDye([x, yTop], cTop);
-      splatDye([x, yBot], cBot);
+      splatVelocity(ptTop, [ 40.0, 0.0]);
+      splatVelocity(ptBot, [-40.0, 0.0]);
+
+      splatDye(ptTop, cTop);
+      splatDye(ptBot, cBot);
     }, 1800);
 
-    // optional: light scroll → disturbance
+    /* light scroll disturbance */
+
     let lastScroll = window.scrollY || 0;
     window.addEventListener("scroll", () => {
       if (!window.fluidActive) return;
@@ -1064,17 +1054,19 @@ title: Home
       const color = sampleLancaColor(upper);
       const force = upper ? [randRange(10, 25), 0.0] : [randRange(-25,-10), 0.0];
 
-      splatVelocity([x, y], force);
-      splatDye([x, y], color);
+      const pt = [x, 1.0 - y];
+      splatVelocity(pt, force);
+      splatDye(pt, color);
     });
 
-    // ---------- simulation step ----------
-    let simWidth, simHeight;
+    /* simulation step */
 
     function step(dt) {
-      const texelSize = [1.0 / simWidth, 1.0 / simHeight];
+      const w = velocity.read.width;
+      const h = velocity.read.height;
+      const texelSize = [1.0 / w, 1.0 / h];
 
-      // 1) Advect velocity
+      /* advect velocity */
       gl.useProgram(advectProgram.program);
       gl.uniform1i(advectProgram.uniforms.uVelocity, 0);
       gl.uniform1i(advectProgram.uniforms.uSource, 1);
@@ -1089,7 +1081,7 @@ title: Home
       blit(velocity.write);
       velocity.swap();
 
-      // 2) Advect dye
+      /* advect dye */
       gl.uniform1f(advectProgram.uniforms.dissipation, config.DYE_DISSIPATION);
       gl.uniform1i(advectProgram.uniforms.uSource, 1);
       gl.activeTexture(gl.TEXTURE0);
@@ -1099,7 +1091,7 @@ title: Home
       blit(dye.write);
       dye.swap();
 
-      // 3) Curl
+      /* curl */
       gl.useProgram(curlProgram.program);
       gl.uniform1i(curlProgram.uniforms.uVelocity, 0);
       gl.uniform2f(curlProgram.uniforms.texelSize, texelSize[0], texelSize[1]);
@@ -1107,7 +1099,7 @@ title: Home
       gl.bindTexture(gl.TEXTURE_2D, velocity.read.texture);
       blit(curl);
 
-      // 4) Vorticity confinement
+      /* vorticity confinement */
       gl.useProgram(vorticityProgram.program);
       gl.uniform1i(vorticityProgram.uniforms.uVelocity, 0);
       gl.uniform1i(vorticityProgram.uniforms.uCurl, 1);
@@ -1121,7 +1113,7 @@ title: Home
       blit(velocity.write);
       velocity.swap();
 
-      // 5) Divergence
+      /* divergence */
       gl.useProgram(divergenceProgram.program);
       gl.uniform1i(divergenceProgram.uniforms.uVelocity, 0);
       gl.uniform2f(divergenceProgram.uniforms.texelSize, texelSize[0], texelSize[1]);
@@ -1129,7 +1121,7 @@ title: Home
       gl.bindTexture(gl.TEXTURE_2D, velocity.read.texture);
       blit(divergence);
 
-      // 6) Pressure solve (Jacobi iterations)
+      /* pressure Poisson solve */
       gl.useProgram(pressureProgram.program);
       gl.uniform1i(pressureProgram.uniforms.uDivergence, 0);
       gl.uniform2f(pressureProgram.uniforms.texelSize, texelSize[0], texelSize[1]);
@@ -1143,7 +1135,7 @@ title: Home
         pressure.swap();
       }
 
-      // 7) Subtract gradient of pressure from velocity
+      /* subtract pressure gradient */
       gl.useProgram(gradientSubtractProgram.program);
       gl.uniform1i(gradientSubtractProgram.uniforms.uVelocity, 0);
       gl.uniform1i(gradientSubtractProgram.uniforms.uPressure, 1);
@@ -1156,15 +1148,8 @@ title: Home
       velocity.swap();
     }
 
-    // recompute simWidth/Height whenever FBOs created
-    simWidth  = canvas.width  > 0 ? canvas.width  : config.SIM_RES;
-    simHeight = canvas.height > 0 ? canvas.height : config.SIM_RES;
+    /* render loop */
 
-    // already called once in resizeCanvas's initFramebuffers
-    simWidth  = velocity.read.width;
-    simHeight = velocity.read.height;
-
-    // ---------- render loop ----------
     let lastTime = performance.now();
 
     function render() {
@@ -1175,11 +1160,9 @@ title: Home
       const dt = Math.min(0.033, (now - lastTime) / 1000) * (config.TIME_STEP / 0.016);
       lastTime = now;
 
-      simWidth  = velocity.read.width;
-      simHeight = velocity.read.height;
-
       step(dt);
 
+      gl.disable(gl.BLEND);
       gl.useProgram(displayProgram.program);
       gl.uniform1i(displayProgram.uniforms.uTexture, 0);
       gl.activeTexture(gl.TEXTURE0);
