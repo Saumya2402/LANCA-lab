@@ -24,6 +24,16 @@
             --text-dark: #191919;
         }
 
+        #curly-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.18;
+        }
+
         body {
             margin: 0;
             font-family: 'Roboto', sans-serif;
@@ -144,6 +154,8 @@
         </div>
     </div>
 
+    <canvas id="curly-canvas" aria-hidden="true"></canvas>
+
     <!-- NAVIGATION -->
     <nav>
         <div class="nav-logo">
@@ -171,6 +183,8 @@
             This website is managed by LANCA members and is not an official ASU page.
         </p>
     </footer>
+
+    <script src="{{ site.baseurl }}/assets/js/curly_cursor.js"></script>
 
     <!-- TRANSITION LOGIC -->
     <script>
