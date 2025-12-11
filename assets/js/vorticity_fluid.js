@@ -3,17 +3,17 @@
 // and a gentle ambient swirl.
 (function () {
   const config = {
-    SIM_RESOLUTION: 240,
-    DYE_RESOLUTION: 1080,
-    VELOCITY_DISSIPATION: 0.994,
-    DYE_DISSIPATION: 0.9992,
-    PRESSURE_ITERATIONS: 30,
-    CURL: 6.5,
-    SPLAT_RADIUS: 0.03,
-    SPLAT_FORCE: 26,
+    SIM_RESOLUTION: 128,
+    DYE_RESOLUTION: 512,
+    VELOCITY_DISSIPATION: 0.98,
+    DYE_DISSIPATION: 0.995,
+    PRESSURE_ITERATIONS: 28,
+    CURL: 30,
+    SPLAT_RADIUS: 0.018,
+    SPLAT_FORCE: 6000,
     AMBIENT_SPLATS: 1,
-    AMBIENT_RATE: 1400,
-    TIME_STEP: 0.01
+    AMBIENT_RATE: 7500,
+    TIME_STEP: 0.016
   };
 
   const pointers = [{
@@ -35,8 +35,6 @@
       pressureProgram, gradientSubtractProgram, splatProgram, displayProgram;
   let lastTime = performance.now();
   let ambientTimer;
-  let ribbonProgress = 0;
-  const ribbonColor = [0.88, 0.09, 0.56];
 
   window.initFluidBackground = function initFluidBackground() {
     if (window.fluidInitialized) return;
@@ -53,7 +51,6 @@
     initPrograms();
     resizeCanvas();
     initPointers();
-    addRandomSplats(5);
     requestAnimationFrame(update);
     startAmbientSplats();
   };
@@ -430,27 +427,13 @@
     for (let i = 0; i < count; i++) {
       const x = Math.random();
       const y = Math.random();
-      const color = hsvToRGB(Math.random(), 0.45, 0.7);
+      const color = hsvToRGB(Math.random(), 0.6, 0.9);
       const angle = Math.random() * Math.PI * 2;
-      const speed = 12 + Math.random() * 30;
+      const speed = 300 + Math.random() * 400;
       const force = [Math.cos(angle) * speed, Math.sin(angle) * speed];
       splatVelocity([x, y], force);
-      splatDye([x, y], color.map(c => c * 0.7));
+      splatDye([x, y], color);
     }
-  }
-
-  function emitRibbon(dt) {
-    ribbonProgress = (ribbonProgress + dt * 0.16) % 1;
-
-    const x = 0.05 + ribbonProgress * 0.8;
-    const y = 0.24 + Math.sin(ribbonProgress * 2.9) * 0.1;
-
-    const angle = 0.35 + Math.sin(ribbonProgress * 3.4) * 0.25;
-    const speed = 16 + Math.sin(ribbonProgress * 1.7) * 4;
-    const force = [Math.cos(angle) * speed, Math.sin(angle) * speed];
-
-    splatVelocity([x, y], force);
-    splatDye([x, y], ribbonColor);
   }
 
   function startAmbientSplats() {
@@ -567,8 +550,6 @@
       p.moved = false;
       splat(p);
     });
-
-    emitRibbon(dt);
 
     step(dt);
     render();
