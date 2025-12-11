@@ -3,17 +3,17 @@
 // and a gentle ambient swirl.
 (function () {
   const config = {
-    SIM_RESOLUTION: 192,
-    DYE_RESOLUTION: 768,
-    VELOCITY_DISSIPATION: 0.99,
-    DYE_DISSIPATION: 0.998,
+    SIM_RESOLUTION: 128,
+    DYE_RESOLUTION: 512,
+    VELOCITY_DISSIPATION: 0.98,
+    DYE_DISSIPATION: 0.995,
     PRESSURE_ITERATIONS: 28,
-    CURL: 12,
-    SPLAT_RADIUS: 0.05,
-    SPLAT_FORCE: 1800,
-    AMBIENT_SPLATS: 3,
-    AMBIENT_RATE: 1800,
-    TIME_STEP: 0.012
+    CURL: 30,
+    SPLAT_RADIUS: 0.018,
+    SPLAT_FORCE: 6000,
+    AMBIENT_SPLATS: 1,
+    AMBIENT_RATE: 7500,
+    TIME_STEP: 0.016
   };
 
   const pointers = [{
@@ -51,7 +51,6 @@
     initPrograms();
     resizeCanvas();
     initPointers();
-    addRandomSplats(10);
     requestAnimationFrame(update);
     startAmbientSplats();
   };
@@ -430,7 +429,7 @@
       const y = Math.random();
       const color = hsvToRGB(Math.random(), 0.6, 0.9);
       const angle = Math.random() * Math.PI * 2;
-      const speed = 120 + Math.random() * 180;
+      const speed = 300 + Math.random() * 400;
       const force = [Math.cos(angle) * speed, Math.sin(angle) * speed];
       splatVelocity([x, y], force);
       splatDye([x, y], color);

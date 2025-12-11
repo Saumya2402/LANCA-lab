@@ -16,7 +16,7 @@
         mouseThreshold: 0.6,
         spring: 0.4,
         friction: 0.5,
-        strokeStyle: 'rgba(255, 198, 39, 0.22)',
+        strokeStyle: 'rgba(255, 198, 39, 0.35)',
     };
 
     const trail = new Array(params.pointsNumber).fill(null).map(() => ({
