@@ -27,6 +27,33 @@ title: Home
         z-index: -1;
     }
 
+    /* Liquid water background overlay */
+    #water-app {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -2;
+    }
+
+    #water-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        pointer-events: none;
+    }
+
+    #water-credit {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        pointer-events: auto;
+    }
+
     /* Canvas for Airfoil (Three.js) */
     #airfoil-canvas {
         position: absolute;
@@ -235,6 +262,12 @@ title: Home
 
     @media (max-width: 768px) { .lab-title-block h1 { font-size: 3.5rem; } }
 </style>
+
+<!-- LIQUID BACKGROUND -->
+<div id="water-app" aria-hidden="true">
+    <canvas id="water-canvas"></canvas>
+    <a id="water-credit" target="_blank" rel="noopener noreferrer" href="https://www.framer.com/@kevin-levron/">Framer Component</a>
+</div>
 
 <!-- SIMULATION CONTAINER -->
 <div id="sim-container">
@@ -556,12 +589,25 @@ title: Home
         });
     });
 
-})();
-</script>
+  })();
+  </script>
 
-<!-- FLUID BACKGROUND ENGINE (Kelvin–Helmholtz style, LANCA palette) -->
-<script>
-(function () {
+  <script type="module">
+      import LiquidBackground from 'https://cdn.jsdelivr.net/npm/threejs-components@0.0.27/build/backgrounds/liquid1.min.js'
+
+      const liquidCanvas = document.getElementById('water-canvas')
+      const waterBg = LiquidBackground(liquidCanvas)
+
+      waterBg.loadImage('https://assets.codepen.io/33787/liquid.webp')
+      waterBg.liquidPlane.material.metalness = 0.75
+      waterBg.liquidPlane.material.roughness = 0.25
+      waterBg.liquidPlane.uniforms.displacementScale.value = 5
+      waterBg.setRain(false)
+  </script>
+
+  <!-- FLUID BACKGROUND ENGINE (Kelvin–Helmholtz style, LANCA palette) -->
+  <script>
+  (function () {
 
   window.initFluidBackground = function initFluidBackground() {
     if (window.fluidInitialized) return;
