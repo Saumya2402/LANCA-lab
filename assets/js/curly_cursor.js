@@ -16,7 +16,7 @@
         mouseThreshold: 0.6,
         spring: 0.4,
         friction: 0.5,
-        strokeStyle: '#FFC627',
+        strokeStyle: 'rgba(255, 198, 39, 0.35)',
     };
 
     const trail = new Array(params.pointsNumber).fill(null).map(() => ({
@@ -91,11 +91,11 @@
     update(0);
 
     window.addEventListener('resize', setupCanvas);
-    window.addEventListener('click', (e) => updateMousePosition(e.pageX, e.pageY));
-    window.addEventListener('mousemove', (e) => handlePointerMove(e.pageX, e.pageY));
+    window.addEventListener('click', (e) => updateMousePosition(e.clientX, e.clientY));
+    window.addEventListener('mousemove', (e) => handlePointerMove(e.clientX, e.clientY));
     window.addEventListener('touchmove', (e) => {
         const touch = e.targetTouches[0];
         if (!touch) return;
-        handlePointerMove(touch.pageX, touch.pageY);
+        handlePointerMove(touch.clientX, touch.clientY);
     }, { passive: true });
 })();
