@@ -37,6 +37,8 @@ title: Home
         z-index: 1;
         transition: opacity 0.8s ease;
         pointer-events: none; /* Let clicks pass through */
+        transform-origin: center center;
+        transform: scale(1);
     }
 
     /* Canvas for Fluid (WebGL) */
@@ -521,16 +523,16 @@ title: Home
 
             if (scrollTextEl) scrollTextEl.textContent = 'Scroll to Move Vortices';
 
-            tl.to(cam.position, { z: 20, duration: 0.8, ease: "power2.in" });
-            tl.to([airfoilObj.material, flowObj.material], { opacity: 0, duration: 0.5 });
-            tl.to(airfoilCanvasEl, { opacity: 0, duration: 0.6 }, "<");
-            tl.to(fluidCanvasEl, { opacity: 1, duration: 0.8 }, "<");
+            tl.to(cam.position, { z: 12, duration: 0.9, ease: "power2.inOut" });
+            tl.to([airfoilObj.material, flowObj.material], { opacity: 0, duration: 0.55, ease: "power1.out" }, "<0.05");
+            tl.to(airfoilCanvasEl, { opacity: 0, scale: 0.92, filter: "blur(6px)", duration: 0.9, ease: "power2.out" }, "<");
+            tl.to(fluidCanvasEl, { opacity: 1, duration: 0.9, ease: "power2.out" }, "<0.15");
         } else {
             window.fluidActive = false;
             if (scrollTextEl) scrollTextEl.textContent = 'Scroll to Pitch Airfoil';
 
-            tl.to(fluidCanvasEl, { opacity: 0, duration: 0.6 });
-            tl.to(airfoilCanvasEl, { opacity: 1, duration: 0.6 }, "<");
+            tl.to(fluidCanvasEl, { opacity: 0, duration: 0.6, ease: "power1.out" });
+            tl.to(airfoilCanvasEl, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.7, ease: "power2.out" }, "<");
             tl.to(airfoilObj.material, { opacity: 0.5, duration: 0.5 }, "<");
             tl.to(flowObj.material, { opacity: 0.6, duration: 0.5 }, "<");
             tl.to(cam.position, { z: 7, duration: 1.0, ease: "power2.out" });
