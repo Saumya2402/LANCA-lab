@@ -521,11 +521,10 @@ title: Home
 
             if (scrollTextEl) scrollTextEl.textContent = 'Scroll to Move Vortices';
 
-            tl.to(cam.position, { z: 12, duration: 0.55, ease: "power1.inOut" });
-            tl.to(cam.position, { z: 20, duration: 1.1, ease: "power3.out" });
-            tl.to([airfoilObj.material, flowObj.material], { opacity: 0, duration: 0.6, ease: "power2.in" }, "<-0.6");
-            tl.to(airfoilCanvasEl, { opacity: 0, duration: 0.75, ease: "power2.out" }, "<");
-            tl.to(fluidCanvasEl, { opacity: 1, duration: 0.95, ease: "power2.inOut" }, "<0.05");
+            tl.to(cam.position, { z: 20, duration: 1.2, ease: "power2.inOut" });
+            tl.to([airfoilObj.material, flowObj.material], { opacity: 0, duration: 0.5 });
+            tl.to(airfoilCanvasEl, { opacity: 0, duration: 0.6 }, "<");
+            tl.to(fluidCanvasEl, { opacity: 1, duration: 0.8 }, "<");
         } else {
             window.fluidActive = false;
             if (scrollTextEl) scrollTextEl.textContent = 'Scroll to Pitch Airfoil';
@@ -534,8 +533,7 @@ title: Home
             tl.to(airfoilCanvasEl, { opacity: 1, duration: 0.6 }, "<");
             tl.to(airfoilObj.material, { opacity: 0.5, duration: 0.5 }, "<");
             tl.to(flowObj.material, { opacity: 0.6, duration: 0.5 }, "<");
-            tl.to(cam.position, { z: 9, duration: 0.55, ease: "power2.inOut" });
-            tl.to(cam.position, { z: 7, duration: 1.05, ease: "power3.out" }, "<0.05");
+            tl.to(cam.position, { z: 7, duration: 1.2, ease: "power2.inOut" });
         }
     };
 
