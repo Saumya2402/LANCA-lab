@@ -521,7 +521,7 @@ title: Home
 
             if (scrollTextEl) scrollTextEl.textContent = 'Scroll to Move Vortices';
 
-            tl.to(cam.position, { z: 20, duration: 0.8, ease: "power2.in" });
+            tl.to(cam.position, { z: 20, duration: 1.2, ease: "power2.inOut" });
             tl.to([airfoilObj.material, flowObj.material], { opacity: 0, duration: 0.5 });
             tl.to(airfoilCanvasEl, { opacity: 0, duration: 0.6 }, "<");
             tl.to(fluidCanvasEl, { opacity: 1, duration: 0.8 }, "<");
@@ -533,7 +533,7 @@ title: Home
             tl.to(airfoilCanvasEl, { opacity: 1, duration: 0.6 }, "<");
             tl.to(airfoilObj.material, { opacity: 0.5, duration: 0.5 }, "<");
             tl.to(flowObj.material, { opacity: 0.6, duration: 0.5 }, "<");
-            tl.to(cam.position, { z: 7, duration: 1.0, ease: "power2.out" });
+            tl.to(cam.position, { z: 7, duration: 1.2, ease: "power2.inOut" });
         }
     };
 
