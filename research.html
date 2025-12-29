@@ -4,99 +4,354 @@ title: Research
 ---
 
 <style>
-    /* Specific styles for the empty state container */
-    .empty-state {
-        min-height: 70vh; /* Takes up most of the screen */
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background-color: #f5f5f5;
-        text-align: center;
-        padding: 2rem;
-        border-top: 5px solid #8C1D40; /* ASU Maroon top border */
+  :root {
+    --asu-maroon: #8c1d40;
+    --asu-gold: #ffc627;
+    --ink: #0d0d0d;
+    --stone: #f5f5f5;
+    --card: #ffffff;
+  }
+
+  .research-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    padding: 3.5rem 3rem;
+    margin: 1.5rem 0 2rem;
+    background: radial-gradient(circle at 20% 20%, rgba(140, 29, 64, 0.18), transparent 35%),
+      radial-gradient(circle at 80% 0%, rgba(255, 198, 39, 0.25), transparent 35%),
+      linear-gradient(135deg, #ffffff 0%, #f7f0ff 60%, #f2f8ff 100%);
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.08);
+  }
+
+  .research-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 65% 40%, rgba(12, 12, 12, 0.05), transparent 40%);
+    pointer-events: none;
+  }
+
+  .research-hero h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    color: var(--asu-maroon);
+    margin: 0 0 0.4rem;
+    letter-spacing: 0.02em;
+  }
+
+  .research-hero p {
+    max-width: 820px;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #333;
+    margin-bottom: 1rem;
+  }
+
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    background: #fff8e1;
+    border: 1px solid rgba(140, 29, 64, 0.12);
+    color: var(--asu-maroon);
+    border-radius: 999px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.78rem;
+  }
+
+  .research-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin: 2rem 0 2.5rem;
+  }
+
+  .frame-card {
+    position: relative;
+    background: var(--card);
+    border: 1px solid #ececec;
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.06);
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+    overflow: hidden;
+  }
+
+  .frame-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(140, 29, 64, 0.08), rgba(255, 198, 39, 0.1));
+    opacity: 0;
+    transition: opacity 200ms ease;
+    pointer-events: none;
+  }
+
+  .frame-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.1);
+    border-color: rgba(140, 29, 64, 0.2);
+  }
+
+  .frame-card:hover::before {
+    opacity: 1;
+  }
+
+  .frame-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .frame-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.25rem;
+    color: var(--asu-maroon);
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+
+  .frame-id {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 600;
+  }
+
+  .frame-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: #555;
+    font-size: 0.95rem;
+  }
+
+  .frame-body {
+    position: relative;
+    height: 220px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f5f5f5 0%, #ffffff 50%, #eef2f7 100%);
+    border: 1px dashed #cfcfcf;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    overflow: hidden;
+    color: #777;
+    font-size: 0.98rem;
+  }
+
+  .frame-body .placeholder-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    background: #fff8e1;
+    color: #8c1d40;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    border: 1px solid rgba(140, 29, 64, 0.15);
+  }
+
+  .frame-description {
+    margin-top: 0.85rem;
+    color: #444;
+    line-height: 1.5;
+    font-size: 0.98rem;
+  }
+
+  .frame-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .ghost-button {
+    padding: 0.55rem 0.95rem;
+    border-radius: 8px;
+    border: 1px solid #d7d7d7;
+    background: #ffffff;
+    font-weight: 700;
+    color: #333;
+    cursor: pointer;
+    transition: all 150ms ease;
+  }
+
+  .ghost-button:hover {
+    border-color: var(--asu-maroon);
+    color: var(--asu-maroon);
+  }
+
+  .cta-card {
+    background: linear-gradient(135deg, #8c1d40, #5a0f28);
+    color: #fff;
+    border: none;
+    padding: 1.5rem;
+    display: grid;
+    gap: 0.5rem;
+    align-content: center;
+    box-shadow: 0 18px 44px rgba(140, 29, 64, 0.35);
+  }
+
+  .cta-card h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    letter-spacing: 0.01em;
+  }
+
+  .cta-card p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.6;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.35rem;
+  }
+
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 150ms ease, transform 150ms ease;
+  }
+
+  .cta-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 720px) {
+    .research-hero {
+      padding: 2.5rem 1.5rem;
     }
 
-    .empty-icon {
-        font-size: 4rem;
-        color: #ddd;
-        margin-bottom: 1.5rem;
+    .frame-body {
+      height: 200px;
     }
-
-    .construction-badge {
-        background: #FFC627; /* ASU Gold */
-        color: #000;
-        padding: 8px 20px;
-        font-weight: 700;
-        border-radius: 50px;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        display: inline-block;
-    }
-
-    .empty-state h1 {
-        color: #8C1D40;
-        font-family: 'Oswald', sans-serif;
-        font-size: 3rem;
-        margin: 0 0 1rem 0;
-        text-transform: uppercase;
-    }
-
-    .empty-state p {
-        color: #555;
-        max-width: 600px;
-        margin-bottom: 1.5rem;
-        line-height: 1.6;
-        font-size: 1.1rem;
-    }
-
-    .witty-quote {
-        font-style: italic;
-        color: #888;
-        font-size: 1rem;
-        margin-bottom: 3rem;
-        font-family: serif;
-    }
-
-    .return-btn {
-        text-decoration: none;
-        color: #8C1D40;
-        font-weight: 700;
-        border: 2px solid #8C1D40;
-        padding: 10px 25px;
-        border-radius: 4px;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        font-size: 0.9rem;
-    }
-
-    .return-btn:hover {
-        background-color: #8C1D40;
-        color: white;
-    }
+  }
 </style>
 
-<div class="empty-state">
-    <div class="construction-badge"><i class="fas fa-hard-hat"></i> Under Construction</div>
-    
-    <div class="empty-icon"><i class="fas fa-microscope"></i></div>
-    
-    <h1>Research Data Incoming</h1>
-    
-    <p>
-        We are currently updating this page with our latest findings on 
-        <strong>Viscous-Inviscid Interactions</strong>, <strong>Machine Learning Closures</strong>, 
-        and <strong>Trailing Edge Geometry Effects</strong>.
-    </p>
-    
-    <p class="witty-quote">
-        "Please give us a moment... we are currently meshing the domain."
-    </p>
-    
-    <a href="{{ site.baseurl }}/" class="return-btn">
-        <i class="fas fa-arrow-left"></i> Return to Wind Tunnel
-    </a>
-</div>
+<section class="research-hero">
+  <h1>Research Gallery</h1>
+  <p>
+    A living collection of our lab's projects—spanning viscous-inviscid interactions, physics-driven machine
+    learning, and experimental aerodynamics. This page is the staging ground for the 3D project portal inspired by
+    our reference prototype. Each tile below is a ready-made slot to swap in real assets, figures, and writeups.
+  </p>
+  <div class="hero-meta">
+    <span class="hero-tag">Interactive 3D planned</span>
+    <span class="hero-tag">ASU AeroLab</span>
+    <span class="hero-tag">Templates ready</span>
+  </div>
+</section>
+
+<section>
+  <div class="research-grid">
+    <article class="frame-card">
+      <div class="frame-header">
+        <h2 class="frame-title">Viscous-Inviscid Coupling</h2>
+        <span class="frame-id">/01</span>
+      </div>
+      <div class="frame-meta">
+        <span>Project lead: Lab core team</span>
+        <span>Slot type: 3D embed</span>
+      </div>
+      <div class="frame-body">
+        <span class="placeholder-label">Placeholder — replace with GLTF scene or hero graphic</span>
+      </div>
+      <p class="frame-description">
+        Swap this tile's placeholder with a <code>&lt;model-viewer&gt;</code> tag, canvas element, or static render.
+        Title, author, and description follow the reference frame layout so you can lift content from the sample
+        sandbox directly.
+      </p>
+      <div class="frame-actions">
+        <button class="ghost-button" type="button">Add asset link</button>
+        <button class="ghost-button" type="button">Attach writeup</button>
+      </div>
+    </article>
+
+    <article class="frame-card">
+      <div class="frame-header">
+        <h2 class="frame-title">Machine-Learned Closures</h2>
+        <span class="frame-id">/02</span>
+      </div>
+      <div class="frame-meta">
+        <span>Project lead: TBD</span>
+        <span>Slot type: Interactive text</span>
+      </div>
+      <div class="frame-body">
+        <span class="placeholder-label">Placeholder — drop in flowfield animations</span>
+      </div>
+      <p class="frame-description">
+        Use this slot for short summaries, inline charts, or animated GIFs. Keep the framing consistent so future
+        3D portal navigation can swap between items without redesigning the page.
+      </p>
+      <div class="frame-actions">
+        <button class="ghost-button" type="button">Add dataset</button>
+        <button class="ghost-button" type="button">Link publication</button>
+      </div>
+    </article>
+
+    <article class="frame-card">
+      <div class="frame-header">
+        <h2 class="frame-title">Trailing-Edge Geometry Effects</h2>
+        <span class="frame-id">/03</span>
+      </div>
+      <div class="frame-meta">
+        <span>Project lead: Lab core team</span>
+        <span>Slot type: Gallery</span>
+      </div>
+      <div class="frame-body">
+        <span class="placeholder-label">Placeholder — add wind tunnel imagery</span>
+      </div>
+      <p class="frame-description">
+        Perfect for a carousel or grid of experimental shots. Mirror the identifiers and naming used in the example
+        portal so the eventual 3D navigation can map cleanly to this content structure.
+      </p>
+      <div class="frame-actions">
+        <button class="ghost-button" type="button">Upload photos</button>
+        <button class="ghost-button" type="button">Add notes</button>
+      </div>
+    </article>
+
+    <article class="frame-card cta-card">
+      <div>
+        <h3>Next step: wire in the interactive portal</h3>
+        <p>
+          When you are ready, embed the React + Three.js scene from the sandbox and map each frame to these tiles. The
+          layout, tags, and IDs above are already aligned with the reference <code>/item/:id</code> routing concept.
+        </p>
+      </div>
+      <div class="cta-buttons">
+        <a class="cta-button" href="https://codesandbox.io/p/sandbox/9m4tpc?file=/src/App.js" target="_blank" rel="noopener">View prototype</a>
+        <a class="cta-button" href="{{ site.baseurl }}/" aria-label="Return to home">Return home</a>
+      </div>
+    </article>
+  </div>
+</section>
