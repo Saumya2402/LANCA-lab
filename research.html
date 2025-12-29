@@ -4,99 +4,270 @@ title: Research
 ---
 
 <style>
-    /* Specific styles for the empty state container */
-    .empty-state {
-        min-height: 70vh; /* Takes up most of the screen */
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background-color: #f5f5f5;
+    :root {
+        --asu-maroon: #8C1D40;
+        --asu-gold: #FFC627;
+    }
+
+    .research-container {
+        padding: 4rem 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        perspective: 1000px; /* Essential for 3D effect */
+    }
+
+    .research-header {
         text-align: center;
-        padding: 2rem;
-        border-top: 5px solid #8C1D40; /* ASU Maroon top border */
+        margin-bottom: 5rem;
     }
 
-    .empty-icon {
-        font-size: 4rem;
-        color: #ddd;
-        margin-bottom: 1.5rem;
-    }
-
-    .construction-badge {
-        background: #FFC627; /* ASU Gold */
-        color: #000;
-        padding: 8px 20px;
-        font-weight: 700;
-        border-radius: 50px;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        display: inline-block;
-    }
-
-    .empty-state h1 {
-        color: #8C1D40;
+    .research-header h1 {
         font-family: 'Oswald', sans-serif;
-        font-size: 3rem;
-        margin: 0 0 1rem 0;
+        font-size: 3.5rem;
         text-transform: uppercase;
+        color: var(--asu-maroon);
     }
 
-    .empty-state p {
-        color: #555;
-        max-width: 600px;
-        margin-bottom: 1.5rem;
-        line-height: 1.6;
-        font-size: 1.1rem;
+    /* --- The 3D Grid --- */
+    .portal-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 3rem;
+        transform-style: preserve-3d;
     }
 
-    .witty-quote {
-        font-style: italic;
-        color: #888;
-        font-size: 1rem;
-        margin-bottom: 3rem;
-        font-family: serif;
+    /* --- Portal Card --- */
+    .portal-card {
+        position: relative;
+        width: 350px;
+        height: 450px;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transform-style: preserve-3d;
+        transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        
+        /* The "Floating" Animation */
+        animation: float 6s ease-in-out infinite;
     }
 
-    .return-btn {
-        text-decoration: none;
-        color: #8C1D40;
-        font-weight: 700;
-        border: 2px solid #8C1D40;
-        padding: 10px 25px;
-        border-radius: 4px;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        font-size: 0.9rem;
+    /* Stagger animations so they don't float in sync */
+    .portal-card:nth-child(2) { animation-delay: 1s; }
+    .portal-card:nth-child(3) { animation-delay: 2s; }
+
+    .portal-card:hover {
+        transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
+        box-shadow: 0 25px 50px rgba(140, 29, 64, 0.25);
     }
 
-    .return-btn:hover {
-        background-color: #8C1D40;
+    /* Background Image Area */
+    .card-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 20px;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.8s ease;
+    }
+
+    .portal-card:hover .card-image img {
+        transform: scale(1.1);
+    }
+
+    /* Overlay Gradient */
+    .card-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 70%;
+        background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        z-index: 2;
+        border-radius: 0 0 20px 20px;
+    }
+
+    /* Text Content */
+    .card-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 2rem;
+        z-index: 3;
         color: white;
+        transform: translateZ(20px); /* Push text forward in 3D */
+    }
+
+    .card-icon {
+        font-size: 2rem;
+        color: var(--asu-gold);
+        margin-bottom: 0.5rem;
+    }
+
+    .card-title {
+        font-family: 'Oswald', sans-serif;
+        font-size: 1.8rem;
+        text-transform: uppercase;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .card-summary {
+        font-size: 0.9rem;
+        margin-top: 1rem;
+        opacity: 0.9;
+        font-weight: 300;
+    }
+
+    /* --- Expanded "Portal" State --- */
+    .portal-card.expanded {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 9999;
+        transform: none !important;
+        animation: none;
+        border-radius: 0;
+        cursor: default;
+        overflow-y: auto;
+    }
+
+    .portal-card.expanded .card-overlay {
+        height: 100%;
+        background: rgba(255,255,255,0.95);
+        border-radius: 0;
+    }
+
+    .portal-card.expanded .card-content {
+        color: #333;
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+        padding-top: 100px; /* Space for close button */
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .portal-card.expanded .card-title {
+        color: var(--asu-maroon);
+        font-size: 3rem;
+    }
+    
+    .portal-card.expanded .card-icon {
+        color: var(--asu-maroon);
+    }
+
+    .portal-card.expanded .details-text {
+        display: block;
+        font-size: 1.2rem;
+        line-height: 1.6;
+        margin-top: 2rem;
+        padding-bottom: 4rem;
+    }
+
+    .details-text { display: none; }
+
+    .close-btn {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: var(--asu-maroon);
+        color: white;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: none;
+        font-size: 1.5rem;
+        display: none; /* Hidden by default */
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10000;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .portal-card.expanded ~ .close-btn-trigger {
+        display: flex; /* Show only when a card is expanded */
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
     }
 </style>
 
-<div class="empty-state">
-    <div class="construction-badge"><i class="fas fa-hard-hat"></i> Under Construction</div>
+<div class="research-container">
     
-    <div class="empty-icon"><i class="fas fa-microscope"></i></div>
-    
-    <h1>Research Data Incoming</h1>
-    
-    <p>
-        We are currently updating this page with our latest findings on 
-        <strong>Viscous-Inviscid Interactions</strong>, <strong>Machine Learning Closures</strong>, 
-        and <strong>Trailing Edge Geometry Effects</strong>.
-    </p>
-    
-    <p class="witty-quote">
-        "Please give us a moment... we are currently meshing the domain."
-    </p>
-    
-    <a href="{{ site.baseurl }}/" class="return-btn">
-        <i class="fas fa-arrow-left"></i> Return to Wind Tunnel
-    </a>
+    <div class="research-header">
+        <h1>Research Portals</h1>
+        <p>Click a card to enter the domain</p>
+    </div>
+
+    <div class="portal-grid">
+        {% for project in site.data.research %}
+        <div class="portal-card" onclick="openPortal(this)">
+            <div class="card-image">
+                <img src="{{ project.image | relative_url }}" alt="{{ project.title }}">
+            </div>
+            <div class="card-overlay"></div>
+            
+            <div class="card-content">
+                <div class="card-icon"><i class="{{ project.icon }}"></i></div>
+                <h2 class="card-title">{{ project.title }}</h2>
+                <p class="card-summary">{{ project.summary }}</p>
+                
+                <div class="details-text">
+                    {{ project.details | markdownify }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <button class="close-btn close-btn-trigger" onclick="closePortal()">
+        <i class="fas fa-times"></i>
+    </button>
+
 </div>
+
+<script>
+    function openPortal(card) {
+        if (card.classList.contains('expanded')) return;
+        
+        // 1. Lock Body Scroll
+        document.body.style.overflow = 'hidden';
+        
+        // 2. Add class
+        card.classList.add('expanded');
+        
+        // 3. Show Close Button (Handled by CSS ~ sibling selector, but fallback logic here)
+        document.querySelector('.close-btn-trigger').style.display = 'flex';
+    }
+
+    function closePortal() {
+        // 1. Unlock Scroll
+        document.body.style.overflow = '';
+        
+        // 2. Remove class from all cards
+        document.querySelectorAll('.portal-card').forEach(c => {
+            c.classList.remove('expanded');
+        });
+        
+        // 3. Hide button
+        document.querySelector('.close-btn-trigger').style.display = 'none';
+    }
+</script>
