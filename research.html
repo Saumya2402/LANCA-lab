@@ -3,271 +3,375 @@ layout: default
 title: Research
 ---
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
 <style>
-    :root {
-        --asu-maroon: #8C1D40;
-        --asu-gold: #FFC627;
-    }
-
-    .research-container {
-        padding: 4rem 2rem;
-        max-width: 1400px;
-        margin: 0 auto;
-        perspective: 1000px; /* Essential for 3D effect */
-    }
-
-    .research-header {
-        text-align: center;
-        margin-bottom: 5rem;
-    }
-
-    .research-header h1 {
-        font-family: 'Oswald', sans-serif;
-        font-size: 3.5rem;
-        text-transform: uppercase;
-        color: var(--asu-maroon);
-    }
-
-    /* --- The 3D Grid --- */
-    .portal-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 3rem;
-        transform-style: preserve-3d;
-    }
-
-    /* --- Portal Card --- */
-    .portal-card {
-        position: relative;
-        width: 350px;
-        height: 450px;
-        border-radius: 20px;
-        background: #fff;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-        cursor: pointer;
-        transform-style: preserve-3d;
-        transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-        
-        /* The "Floating" Animation */
-        animation: float 6s ease-in-out infinite;
-    }
-
-    /* Stagger animations so they don't float in sync */
-    .portal-card:nth-child(2) { animation-delay: 1s; }
-    .portal-card:nth-child(3) { animation-delay: 2s; }
-
-    .portal-card:hover {
-        transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
-        box-shadow: 0 25px 50px rgba(140, 29, 64, 0.25);
-    }
-
-    /* Background Image Area */
-    .card-image {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 20px;
-        overflow: hidden;
-        z-index: 1;
-    }
-
-    .card-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.8s ease;
-    }
-
-    .portal-card:hover .card-image img {
-        transform: scale(1.1);
-    }
-
-    /* Overlay Gradient */
-    .card-overlay {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 70%;
-        background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-        z-index: 2;
-        border-radius: 0 0 20px 20px;
-    }
-
-    /* Text Content */
-    .card-content {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        padding: 2rem;
-        z-index: 3;
-        color: white;
-        transform: translateZ(20px); /* Push text forward in 3D */
-    }
-
-    .card-icon {
-        font-size: 2rem;
-        color: var(--asu-gold);
-        margin-bottom: 0.5rem;
-    }
-
-    .card-title {
-        font-family: 'Oswald', sans-serif;
-        font-size: 1.8rem;
-        text-transform: uppercase;
+    /* --- Container & Reset --- */
+    body {
         margin: 0;
-        line-height: 1.1;
+        overflow: hidden; /* Disable standard scroll, we handle it in 3D */
+        background-color: #111; /* Dark background like the sandbox */
+        font-family: 'Oswald', sans-serif;
     }
 
-    .card-summary {
-        font-size: 0.9rem;
-        margin-top: 1rem;
-        opacity: 0.9;
-        font-weight: 300;
-    }
-
-    /* --- Expanded "Portal" State --- */
-    .portal-card.expanded {
+    #canvas-container {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        z-index: 9999;
-        transform: none !important;
-        animation: none;
-        border-radius: 0;
-        cursor: default;
-        overflow-y: auto;
+        z-index: 1;
+        outline: none;
     }
 
-    .portal-card.expanded .card-overlay {
+    /* --- UI Overlays (Text floating above 3D) --- */
+    .ui-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
         height: 100%;
-        background: rgba(255,255,255,0.95);
-        border-radius: 0;
+        z-index: 2;
+        pointer-events: none; /* Let clicks pass through to 3D */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 40px;
+        box-sizing: border-box;
     }
 
-    .portal-card.expanded .card-content {
-        color: #333;
-        max-width: 800px;
-        margin: 0 auto;
-        position: relative;
-        padding-top: 100px; /* Space for close button */
-        height: auto;
-        min-height: 100vh;
+    .header-ui {
+        text-align: center;
+        color: white;
+        text-transform: uppercase;
+        margin-top: 5vh;
+        opacity: 0;
+        animation: fadeIn 2s forwards 0.5s;
     }
 
-    .portal-card.expanded .card-title {
-        color: var(--asu-maroon);
+    .header-ui h1 {
         font-size: 3rem;
-    }
-    
-    .portal-card.expanded .card-icon {
-        color: var(--asu-maroon);
+        margin: 0;
+        letter-spacing: 5px;
+        color: #8C1D40; /* ASU Maroon */
+        text-shadow: 0 0 20px rgba(140, 29, 64, 0.5);
     }
 
-    .portal-card.expanded .details-text {
+    .header-ui p {
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+        color: #FFC627; /* ASU Gold */
+        margin-top: 10px;
+    }
+
+    .instructions {
+        text-align: center;
+        color: rgba(255,255,255,0.5);
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        margin-bottom: 2vh;
+    }
+
+    /* --- Detailed Content Overlay (Hidden initially) --- */
+    #detail-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: white;
+        z-index: 10;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 1s ease;
+        padding: 80px 15%; /* Large margins for reading */
+        overflow-y: auto;
+        display: none; /* Completely hidden until active */
+    }
+
+    #detail-overlay.active {
+        opacity: 1;
+        pointer-events: all;
         display: block;
+    }
+
+    .back-btn {
+        position: absolute;
+        top: 40px;
+        left: 40px;
+        border: 2px solid #8C1D40;
+        color: #8C1D40;
+        background: transparent;
+        padding: 10px 20px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: all 0.3s;
+    }
+
+    .back-btn:hover {
+        background: #8C1D40;
+        color: white;
+    }
+
+    .detail-content h2 {
+        font-size: 4rem;
+        color: #8C1D40;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+    }
+
+    .detail-content p {
         font-size: 1.2rem;
         line-height: 1.6;
-        margin-top: 2rem;
-        padding-bottom: 4rem;
+        color: #333;
+        max-width: 800px;
     }
 
-    .details-text { display: none; }
-
-    .close-btn {
-        position: fixed;
-        top: 2rem;
-        right: 2rem;
-        background: var(--asu-maroon);
-        color: white;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        border: none;
-        font-size: 1.5rem;
-        display: none; /* Hidden by default */
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 10000;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-
-    .portal-card.expanded ~ .close-btn-trigger {
-        display: flex; /* Show only when a card is expanded */
-    }
-
-    @keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-15px); }
-        100% { transform: translateY(0px); }
+    @keyframes fadeIn {
+        to { opacity: 1; }
     }
 </style>
 
-<div class="research-container">
-    
-    <div class="research-header">
+<div id="canvas-container"></div>
+
+<div class="ui-layer">
+    <div class="header-ui">
         <h1>Research Portals</h1>
-        <p>Click a card to enter the domain</p>
+        <p>Double Click to Enter Domain</p>
     </div>
+    <div class="instructions">
+        Scroll to Pan / Double Click to Explore
+    </div>
+</div>
 
-    <div class="portal-grid">
-        {% for project in site.data.research %}
-        <div class="portal-card" onclick="openPortal(this)">
-            <div class="card-image">
-                <img src="{{ project.image | relative_url }}" alt="{{ project.title }}">
-            </div>
-            <div class="card-overlay"></div>
-            
-            <div class="card-content">
-                <div class="card-icon"><i class="{{ project.icon }}"></i></div>
-                <h2 class="card-title">{{ project.title }}</h2>
-                <p class="card-summary">{{ project.summary }}</p>
-                
-                <div class="details-text">
-                    {{ project.details | markdownify }}
-                </div>
-            </div>
+<div id="detail-overlay">
+    <button class="back-btn" onclick="exitPortal()">Exit Portal</button>
+    <div class="detail-content" id="detail-text">
         </div>
-        {% endfor %}
-    </div>
-
-    <button class="close-btn close-btn-trigger" onclick="closePortal()">
-        <i class="fas fa-times"></i>
-    </button>
-
 </div>
 
 <script>
-    function openPortal(card) {
-        if (card.classList.contains('expanded')) return;
-        
-        // 1. Lock Body Scroll
-        document.body.style.overflow = 'hidden';
-        
-        // 2. Add class
-        card.classList.add('expanded');
-        
-        // 3. Show Close Button (Handled by CSS ~ sibling selector, but fallback logic here)
-        document.querySelector('.close-btn-trigger').style.display = 'flex';
-    }
+    // --- CONFIGURATION ---
+    const ASSETS = {
+        vii: "{{ '/assets/images/ratio1.png' | relative_url }}",
+        ml:  "{{ '/assets/images/ratio4.png' | relative_url }}",
+        te:  "{{ '/assets/images/ratio100.png' | relative_url }}"
+    };
 
-    function closePortal() {
-        // 1. Unlock Scroll
-        document.body.style.overflow = '';
+    const DATA = [
+        {
+            id: 'vii',
+            title: "Viscous-Inviscid",
+            texture: ASSETS.vii,
+            desc: "Our lab focuses on high-fidelity modeling of strong viscous-inviscid interactions (VII). By utilizing advanced numerical schemes, we aim to capture shock-induced separation and trailing edge stall phenomena with greater accuracy than traditional RANS methods."
+        },
+        {
+            id: 'ml',
+            title: "ML Closures",
+            texture: ASSETS.ml,
+            desc: "Developing data-driven turbulence models to enhance RANS simulations using neural networks. We utilize Physics-Informed Neural Networks (PINNs) to strictly enforce conservation laws while learning from high-fidelity DNS data."
+        },
+        {
+            id: 'te',
+            title: "Trailing Edge",
+            texture: ASSETS.te,
+            desc: "Small changes in trailing edge geometry can have significant impacts on drag and acoustic signatures. We are investigating the 'singing' phenomenon of blunt trailing edges using both wind tunnel experiments and computational fluid dynamics."
+        }
+    ];
+
+    // --- SCENE SETUP ---
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x111111, 0.05); // Adds depth
+
+    // Camera
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.z = 5; // Initial distance
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    // --- OBJECTS (The Cards) ---
+    const geometry = new THREE.PlaneGeometry(2, 3); // 2:3 Aspect Ratio cards
+    const meshes = [];
+    const group = new THREE.Group(); // Holds all cards
+    scene.add(group);
+
+    const loader = new THREE.TextureLoader();
+
+    // Create 3 Cards: Left (-2.5), Center (0), Right (+2.5)
+    DATA.forEach((item, index) => {
+        const material = new THREE.MeshBasicMaterial({
+            map: loader.load(item.texture),
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.9
+        });
+
+        const card = new THREE.Mesh(geometry, material);
         
-        // 2. Remove class from all cards
-        document.querySelectorAll('.portal-card').forEach(c => {
-            c.classList.remove('expanded');
+        // Positioning
+        card.position.x = (index - 1) * 2.8; // Spacing: -2.8, 0, 2.8
+        card.userData = { id: item.id, originalX: card.position.x }; // Store ID for click
+        
+        group.add(card);
+        meshes.push(card);
+    });
+
+    // --- INTERACTION STATE ---
+    const mouse = new THREE.Vector2();
+    let targetX = 0;
+    let targetY = 0;
+    const windowHalfX = window.innerWidth / 2;
+    const windowHalfY = window.innerHeight / 2;
+    let isInsidePortal = false;
+
+    // --- EVENT LISTENERS ---
+    
+    // 1. Mouse Move (Parallax)
+    document.addEventListener('mousemove', (event) => {
+        if(isInsidePortal) return;
+        mouse.x = (event.clientX - windowHalfX) / 1000; // Divide to soften effect
+        mouse.y = (event.clientY - windowHalfY) / 1000;
+    });
+
+    // 2. Scroll (Horizontal Pan)
+    document.addEventListener('wheel', (event) => {
+        if(isInsidePortal) return;
+        // Move the group horizontally based on scroll
+        group.position.x -= event.deltaY * 0.002;
+        // Clamp scroll
+        group.position.x = Math.max(-2, Math.min(2, group.position.x));
+    });
+
+    // 3. Double Click (Enter Portal)
+    window.addEventListener('dblclick', (event) => {
+        if(isInsidePortal) return;
+
+        // Raycast to find which card was clicked
+        const raycaster = new THREE.Raycaster();
+        const clickMouse = new THREE.Vector2();
+        clickMouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        clickMouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        
+        raycaster.setFromCamera(clickMouse, camera);
+        const intersects = raycaster.intersectObjects(meshes);
+
+        if (intersects.length > 0) {
+            enterPortal(intersects[0].object);
+        }
+    });
+
+    // 4. Resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // --- ANIMATION FUNCTIONS ---
+
+    function enterPortal(mesh) {
+        isInsidePortal = true;
+        const data = DATA.find(d => d.id === mesh.userData.id);
+
+        // 1. Center the group so the target card is in front of camera
+        // We calculate offset needed to bring mesh.position.x + group.position.x to 0
+        const currentWorldX = mesh.position.x + group.position.x;
+        
+        // 2. Animate Camera INTO the card
+        gsap.to(group.position, {
+            x: group.position.x - currentWorldX, // Center specific card
+            duration: 1.5,
+            ease: "power2.inOut"
+        });
+
+        gsap.to(camera.position, {
+            z: 0.5, // Zoom very close
+            duration: 1.5,
+            ease: "power2.inOut",
+            onComplete: () => {
+                showDetails(data);
+            }
+        });
+
+        // Rotate card flat to face camera perfectly
+        gsap.to(mesh.rotation, {
+            x: 0, y: 0, z: 0,
+            duration: 1
         });
         
-        // 3. Hide button
-        document.querySelector('.close-btn-trigger').style.display = 'none';
+        // Fade out others
+        meshes.forEach(m => {
+            if(m !== mesh) gsap.to(m.material, { opacity: 0, duration: 1 });
+        });
+
+        // Hide UI
+        document.querySelector('.ui-layer').style.opacity = '0';
     }
+
+    function showDetails(data) {
+        const overlay = document.getElementById('detail-overlay');
+        const content = document.getElementById('detail-text');
+        
+        content.innerHTML = `
+            <h2>${data.title}</h2>
+            <p>${data.desc}</p>
+            <hr style="border: 0; border-top: 1px solid #ddd; margin: 2rem 0;">
+            <p><strong>Status:</strong> Active Research</p>
+        `;
+        
+        overlay.classList.add('active');
+    }
+
+    window.exitPortal = function() {
+        const overlay = document.getElementById('detail-overlay');
+        overlay.classList.remove('active');
+
+        // Reset Camera
+        gsap.to(camera.position, {
+            z: 5,
+            duration: 1.5,
+            ease: "power2.out"
+        });
+
+        // Reset Group Opacity
+        meshes.forEach(m => {
+            gsap.to(m.material, { opacity: 0.9, duration: 1 });
+        });
+        
+        // Show UI
+        document.querySelector('.ui-layer').style.opacity = '1';
+
+        setTimeout(() => { isInsidePortal = false; }, 1500);
+    };
+
+    // --- ANIMATION LOOP ---
+    function animate() {
+        requestAnimationFrame(animate);
+
+        if (!isInsidePortal) {
+            // Smooth Camera Rig (Parallax)
+            targetX = mouse.x * 2; // Multiplier for sensitivity
+            targetY = mouse.y * 2;
+
+            group.rotation.y += 0.05 * (targetX - group.rotation.y);
+            group.rotation.x += 0.05 * (targetY - group.rotation.x);
+
+            // Subtle float effect for individual cards
+            const time = Date.now() * 0.001;
+            meshes.forEach((mesh, i) => {
+                mesh.position.y = Math.sin(time + i * 2) * 0.1; // Bobbing up and down
+            });
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    animate();
 </script>
