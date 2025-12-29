@@ -3,471 +3,100 @@ layout: default
 title: Research
 ---
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
-
 <style>
-  :root {
-    --ink: #0d0d0d;
-    --cloud: #f0f0f0;
-    --stone: #e7e7e7;
-    --glow: #ffc627;
-    --maroon: #8c1d40;
-    --card: #ffffff;
-    --text: #2a2a2a;
-  }
-
-  .page-shell {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1.5rem;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    color: var(--text);
-  }
-
-  .canvas-hero {
-    background: linear-gradient(145deg, #ffffff 0%, #f8f8ff 60%, #eef4ff 100%);
-    border-radius: 18px;
-    padding: 2.5rem 2rem;
-    margin-bottom: 1.75rem;
-    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.08);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .canvas-hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 20% 30%, rgba(140, 29, 64, 0.08), transparent 35%),
-      radial-gradient(circle at 85% 15%, rgba(255, 198, 39, 0.18), transparent 30%);
-    pointer-events: none;
-  }
-
-  .canvas-hero h1 {
-    font-family: 'Oswald', sans-serif;
-    font-size: clamp(2.35rem, 4vw, 3.1rem);
-    color: var(--maroon);
-    margin: 0 0 0.4rem;
-    letter-spacing: 0.02em;
-  }
-
-  .canvas-hero p {
-    max-width: 920px;
-    line-height: 1.7;
-    margin: 0.35rem 0 0;
-    font-size: 1.02rem;
-  }
-
-  .meta-row {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-top: 1.25rem;
-  }
-
-  .tag-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: #fff8e1;
-    color: var(--maroon);
-    border: 1px solid rgba(140, 29, 64, 0.12);
-    border-radius: 999px;
-    padding: 0.45rem 0.9rem;
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-  }
-
-  .portal-stage {
-    background: var(--cloud);
-    border-radius: 18px;
-    padding: 2rem 1.5rem;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 18px 50px rgba(0, 0, 0, 0.06);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .portal-stage::before,
-  .portal-stage::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 40% 20%, rgba(255, 198, 39, 0.12), transparent 35%),
-      radial-gradient(circle at 75% 50%, rgba(140, 29, 64, 0.12), transparent 30%);
-    pointer-events: none;
-    mix-blend-mode: multiply;
-  }
-
-  .portal-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 1.25rem;
-  }
-
-  .frame-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1rem;
-    perspective: 1600px;
-    align-items: center;
-  }
-
-  .frame-card {
-    position: relative;
-    aspect-ratio: 1 / 1.45;
-    background: var(--card);
-    border-radius: 14px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
-    padding: 0.85rem;
-    transform-style: preserve-3d;
-    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, filter 220ms ease;
-    cursor: pointer;
-    isolation: isolate;
-  }
-
-  .frame-card:hover {
-    transform: translateY(-6px) rotateY(6deg);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.14);
-    border-color: rgba(140, 29, 64, 0.2);
-  }
-
-  .frame-card[data-selected="true"] {
-    transform: translateY(-4px) scale(1.02);
-    border-color: rgba(140, 29, 64, 0.35);
-    box-shadow: 0 18px 56px rgba(140, 29, 64, 0.18);
-    filter: saturate(1.08);
-  }
-
-  .frame-labels {
-    position: absolute;
-    inset: 0;
-    padding: 0.85rem;
-    display: grid;
-    align-content: space-between;
-  }
-
-  .frame-name {
-    font-family: 'Oswald', sans-serif;
-    font-size: 1.2rem;
-    color: var(--ink);
-    max-width: 85%;
-    line-height: 1.2;
-    text-transform: lowercase;
-    white-space: pre-line;
-  }
-
-  .frame-id {
-    justify-self: end;
-    align-self: start;
-    font-weight: 700;
-    color: #555;
-  }
-
-  .frame-author {
-    font-size: 0.88rem;
-    color: #444;
-  }
-
-  .frame-stage {
-    position: absolute;
-    inset: 0.85rem;
-    border-radius: 10px;
-    background: linear-gradient(180deg, #f5f5f5 0%, #ffffff 55%, #e8edf5 100%);
-    border: 1px dashed #cfcfcf;
-    overflow: hidden;
-  }
-
-  .frame-stage::after {
-    content: "double-click to open";
-    position: absolute;
-    bottom: 0.75rem;
-    right: 0.9rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.55);
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-  }
-
-  .stage-bg {
-    position: absolute;
-    inset: 0;
-    opacity: 0.85;
-    pointer-events: none;
-    mix-blend-mode: multiply;
-  }
-
-  .detail-panel {
-    background: #111;
-    color: #f8f8f8;
-    border-radius: 14px;
-    padding: 1.25rem 1.1rem;
-    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.25);
-    display: grid;
-    gap: 0.5rem;
-    align-content: start;
-    min-height: 100%;
-  }
-
-  .detail-kicker {
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 700;
-    font-size: 0.78rem;
-  }
-
-  .detail-title {
-    font-family: 'Oswald', sans-serif;
-    margin: 0;
-    font-size: 1.35rem;
-  }
-
-  .detail-author {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.72);
-    font-weight: 600;
-  }
-
-  .detail-copy {
-    margin: 0;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.92);
-  }
-
-  .detail-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .detail-tag {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 999px;
-    padding: 0.35rem 0.75rem;
-    font-weight: 700;
-    font-size: 0.9rem;
-  }
-
-  .detail-actions {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-top: 0.25rem;
-  }
-
-  .action-btn {
-    background: #fff;
-    color: #0b0b0b;
-    border: none;
-    padding: 0.7rem 1rem;
-    border-radius: 9px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: transform 150ms ease, box-shadow 150ms ease;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  .action-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
-  }
-
-  .action-btn.secondary {
-    background: transparent;
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-  }
-
-  .legend {
-    margin-top: 1.1rem;
-    font-size: 0.93rem;
-    color: #444;
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .legend strong {
-    color: var(--ink);
-  }
-
-  @media (max-width: 960px) {
-    .portal-grid {
-      grid-template-columns: 1fr;
+    /* Specific styles for the empty state container */
+    .empty-state {
+        min-height: 70vh; /* Takes up most of the screen */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #f5f5f5;
+        text-align: center;
+        padding: 2rem;
+        border-top: 5px solid #8C1D40; /* ASU Maroon top border */
     }
 
-    .frame-row {
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    .empty-icon {
+        font-size: 4rem;
+        color: #ddd;
+        margin-bottom: 1.5rem;
     }
-  }
+
+    .construction-badge {
+        background: #FFC627; /* ASU Gold */
+        color: #000;
+        padding: 8px 20px;
+        font-weight: 700;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        display: inline-block;
+    }
+
+    .empty-state h1 {
+        color: #8C1D40;
+        font-family: 'Oswald', sans-serif;
+        font-size: 3rem;
+        margin: 0 0 1rem 0;
+        text-transform: uppercase;
+    }
+
+    .empty-state p {
+        color: #555;
+        max-width: 600px;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        font-size: 1.1rem;
+    }
+
+    .witty-quote {
+        font-style: italic;
+        color: #888;
+        font-size: 1rem;
+        margin-bottom: 3rem;
+        font-family: serif;
+    }
+
+    .return-btn {
+        text-decoration: none;
+        color: #8C1D40;
+        font-weight: 700;
+        border: 2px solid #8C1D40;
+        padding: 10px 25px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+    }
+
+    .return-btn:hover {
+        background-color: #8C1D40;
+        color: white;
+    }
 </style>
 
-<div class="page-shell">
-  <section class="canvas-hero">
-    <h1>Research portal prototype</h1>
+<div class="empty-state">
+    <div class="construction-badge"><i class="fas fa-hard-hat"></i> Under Construction</div>
+    
+    <div class="empty-icon"><i class="fas fa-microscope"></i></div>
+    
+    <h1>Research Data Incoming</h1>
+    
     <p>
-      A lightweight HTML mock of the interactive React + Three.js gallery you shared. Each frame mirrors the
-      sandbox layout with an ID, stacked title, and author line. Click a frame to highlight it; double-click to pin
-      it into the detail rail on the right. Swap the placeholders for GLTF embeds or canvas renders when you're ready.
+        We are currently updating this page with our latest findings on 
+        <strong>Viscous-Inviscid Interactions</strong>, <strong>Machine Learning Closures</strong>, 
+        and <strong>Trailing Edge Geometry Effects</strong>.
     </p>
-    <div class="meta-row">
-      <span class="tag-chip">3D portal layout</span>
-      <span class="tag-chip">Matches sandbox framing</span>
-      <a class="tag-chip" href="https://codesandbox.io/p/sandbox/9m4tpc?file=/src/App.js" target="_blank" rel="noopener">View reference</a>
-    </div>
-  </section>
-
-  <section class="portal-stage" aria-label="Research project frames">
-    <div class="portal-grid">
-      <div class="frame-row" id="frame-row"></div>
-      <aside class="detail-panel" id="detail-panel" aria-live="polite">
-        <div class="detail-kicker">Selected project</div>
-        <h2 class="detail-title" id="detail-title">—</h2>
-        <p class="detail-author" id="detail-author"></p>
-        <p class="detail-copy" id="detail-copy"></p>
-        <div class="detail-tags" id="detail-tags"></div>
-        <div class="detail-actions">
-          <a class="action-btn" id="primary-link" href="#" target="_blank" rel="noopener">Open slot</a>
-          <a class="action-btn secondary" href="{{ site.baseurl }}/" aria-label="Return to home">Return home</a>
-        </div>
-      </aside>
-    </div>
-    <div class="legend">
-      <strong>How to use:</strong>
-      <span>Single-click a frame to preview.</span>
-      <span>Double-click to lock it in the detail rail.</span>
-      <span>Replace the placeholders with your GLTF or canvas content.</span>
-    </div>
-  </section>
+    
+    <p class="witty-quote">
+        "Please give us a moment... we are currently meshing the domain."
+    </p>
+    
+    <a href="{{ site.baseurl }}/" class="return-btn">
+        <i class="fas fa-arrow-left"></i> Return to Wind Tunnel
+    </a>
 </div>
-
-<script>
-  const projects = [
-    {
-      id: '01',
-      name: 'pick\nles',
-      author: 'LANCA Lab — GLTF slot',
-      copy:
-        'Slot designed for a GLTF showcase in the same proportions as the sandbox frame. Keep the ID, stacked name, and author lines to match the original portal behavior.',
-      tags: ['Scene-ready', 'GLTF', '3D swap'],
-      stageBg:
-        'linear-gradient(140deg, rgba(255, 198, 39, 0.25), rgba(140, 29, 64, 0.12)), radial-gradient(circle at 60% 60%, rgba(12, 12, 12, 0.05), transparent 40%)',
-      link: 'https://codesandbox.io/p/sandbox/9m4tpc?file=/src/App.js'
-    },
-    {
-      id: '02',
-      name: 'tea',
-      author: 'LANCA Lab — flow viz slot',
-      copy:
-        'Use this as a placeholder for flow visualizations, tensor fields, or sprite animations. Mirrors the centered composition of the sandbox frame.',
-      tags: ['Animation ready', 'Flow fields'],
-      stageBg:
-        'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(230, 236, 247, 0.95)), radial-gradient(circle at 45% 20%, rgba(255, 198, 39, 0.2), transparent 35%)',
-      link: 'https://codesandbox.io/p/sandbox/9m4tpc?file=/src/App.js'
-    },
-    {
-      id: '03',
-      name: 'still',
-      author: 'LANCA Lab — image stack',
-      copy:
-        'Perfect for experimental stills or a sprite sheet. The dashed inset matches the three-frame grid from the sandbox so you can swap in renders later.',
-      tags: ['Image-ready', 'Experimental'],
-      stageBg:
-        'linear-gradient(170deg, rgba(235, 235, 235, 0.95), rgba(209, 209, 202, 0.85)), radial-gradient(circle at 70% 30%, rgba(140, 29, 64, 0.18), transparent 32%)',
-      link: 'https://codesandbox.io/p/sandbox/9m4tpc?file=/src/App.js'
-    }
-  ];
-
-  const frameRow = document.getElementById('frame-row');
-  const detailTitle = document.getElementById('detail-title');
-  const detailAuthor = document.getElementById('detail-author');
-  const detailCopy = document.getElementById('detail-copy');
-  const detailTags = document.getElementById('detail-tags');
-  const primaryLink = document.getElementById('primary-link');
-
-  function renderFrames() {
-    projects.forEach((project, index) => {
-      const frame = document.createElement('button');
-      frame.className = 'frame-card';
-      frame.setAttribute('type', 'button');
-      frame.dataset.id = project.id;
-      frame.dataset.selected = index === 0 ? 'true' : 'false';
-
-      const stage = document.createElement('div');
-      stage.className = 'frame-stage';
-      const stageBg = document.createElement('div');
-      stageBg.className = 'stage-bg';
-      stageBg.style.background = project.stageBg;
-      stage.appendChild(stageBg);
-
-      const labels = document.createElement('div');
-      labels.className = 'frame-labels';
-
-      const name = document.createElement('div');
-      name.className = 'frame-name';
-      name.textContent = project.name;
-
-      const id = document.createElement('div');
-      id.className = 'frame-id';
-      id.textContent = '/' + project.id;
-
-      const author = document.createElement('div');
-      author.className = 'frame-author';
-      author.textContent = project.author;
-
-      labels.appendChild(name);
-      labels.appendChild(id);
-      labels.appendChild(author);
-
-      frame.appendChild(stage);
-      frame.appendChild(labels);
-
-      frame.addEventListener('click', () => selectProject(project.id, false));
-      frame.addEventListener('dblclick', () => selectProject(project.id, true));
-
-      frameRow.appendChild(frame);
-    });
-  }
-
-  function selectProject(id, lockSelection) {
-    const project = projects.find((item) => item.id === id);
-    if (!project) return;
-
-    frameRow.querySelectorAll('.frame-card').forEach((frame) => {
-      const isMatch = frame.dataset.id === id;
-      frame.dataset.selected = isMatch ? 'true' : 'false';
-    });
-
-    detailTitle.textContent = `${project.name.replace(/\n/g, ' ')}`;
-    detailAuthor.textContent = `${project.author} — /${project.id}`;
-    detailCopy.textContent = project.copy;
-    primaryLink.href = project.link;
-
-    detailTags.innerHTML = '';
-    project.tags.forEach((tag) => {
-      const pill = document.createElement('span');
-      pill.className = 'detail-tag';
-      pill.textContent = tag;
-      detailTags.appendChild(pill);
-    });
-
-    if (lockSelection) {
-      detailTitle.textContent += ' (locked)';
-    }
-  }
-
-  renderFrames();
-  selectProject(projects[0].id, false);
-</script>
