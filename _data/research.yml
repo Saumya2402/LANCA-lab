@@ -1,0 +1,32 @@
+- title: "Viscous-Inviscid Interactions"
+  id: "vii"
+  icon: "fas fa-water"
+  image: "assets/images/ratio1.png" # Using your existing image as placeholder
+  color: "#8C1D40" # ASU Maroon
+  summary: "Investigating coupling between boundary layers and potential flow."
+  details: |
+    Our lab focuses on high-fidelity modeling of strong viscous-inviscid interactions (VII). 
+    By utilizing advanced numerical schemes, we aim to capture shock-induced separation 
+    and trailing edge stall phenomena with greater accuracy than traditional RANS methods.
+
+- title: "Machine Learning Closures"
+  id: "ml"
+  icon: "fas fa-microchip"
+  image: "assets/images/ratio4.png"
+  color: "#FFC627" # ASU Gold
+  summary: "Data-driven turbulence models using neural networks."
+  details: |
+    We are applying deep learning techniques to improve the closure coefficients in 
+    turbulence models (like Spalart-Allmaras and k-omega). Current work explores 
+    physics-informed neural networks (PINNs).
+
+- title: "Trailing Edge Effects"
+  id: "te"
+  icon: "fas fa-plane"
+  image: "assets/images/ratio100.png"
+  color: "#333333"
+  summary: "Impact of blunt trailing edges on efficiency and acoustics."
+  details: |
+    Small changes in trailing edge geometry can have significant impacts on drag 
+    and acoustic signatures. This research quantifies these effects using both 
+    experimental measurement and CFD.
